@@ -1,1 +1,1 @@
-# twitter-bot
+This is a twitter bot, that tweets every X:Y time interval
