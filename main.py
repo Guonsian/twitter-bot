@@ -5,6 +5,7 @@ import wget
 import random
 import shutil
 import tweepy
+import logging
 import datetime
 import threading
 import load_module
@@ -28,13 +29,14 @@ class Tweet(threading.Thread):
 	def run(self):
 		global tuits
 		print("Tweet printer: Starting thread")
+		logging.info("Starting thread to tweet")
 		Tweet.hadTweet = False
 
 		now = datetime.datetime.now()  # get a datetime object containing current date and time
 		next_time = (now + datetime.timedelta(0, Tweet.delay)).strftime(
 			"%H:%M:%S")  # Get the time when the next tweet will be post, and format it to make it easier to read in the console
 		Tweet.set_next_tweet_t(next_time)
-		# Wait some seconds to avoid
+		# Wait some seconds to avoid spam
 		time.sleep(Tweet.delay)
 
 		self.tweet()
@@ -45,6 +47,7 @@ class Tweet(threading.Thread):
 
 		if len(tuits) == 0:
 			print("¡Se acabaron los tuits!")
+			logging.warning("There are no tweets")
 			save()
 			# Intentandolo en 1000 segundos
 			t = threading.Timer(Tweet.delay_without_tweets, self.tweet)
@@ -59,6 +62,7 @@ class Tweet(threading.Thread):
 		if len(to_tweet.text) <= 280:  # Less than 281 chars
 			print("To tweet:\n" + to_tweet.text)
 			print("------------------------------------------------------------")
+			logging.info("Tweeting: " + to_tweet.text)
 			try:
 				print("Trying to tweet...")
 				global api
@@ -69,17 +73,21 @@ class Tweet(threading.Thread):
 						for imagen in to_tweet.img:
 							print("Uploading", imagen)
 							media.append(api.media_upload(imagen).media_id)
+							logging.info("Upload: " + imagen)
 						print("Trying to post tweet with several images")
 						api.update_status(media_ids=media, status=to_tweet.text)
+						logging.info("Tweet with pics published")
 					else:
 						print("Uploading", to_tweet.img)
 						api.update_with_media(to_tweet.img, to_tweet.text)
+						logging.info("Tweet with pic published")
 				else:
-					pass
 					api.update_status(to_tweet.text)
-			except:
+					logging.info("Tweet published")
+			except Excepction as e:
 				print("Something went wrong")
 				print("------------------------------------------------------------")
+				logging.warning("Tweet couldn't be tweeted: " + str(e))
 				self.tweet()
 			else:
 				print("Tweeted!", end=" ")
@@ -92,7 +100,7 @@ class Tweet(threading.Thread):
 
 				print("Next tweet in:", y, "seconds at " + str(next_time) + ". Remaining tuits:", len(tuits))
 				print("------------------------------------------------------------")
-
+				logging.info("Tweeted successfully, next tweet at" + str(next_time))
 				t = threading.Timer(y, self.tweet)
 				t.start()
 
@@ -101,6 +109,7 @@ class Tweet(threading.Thread):
 		else:
 			print("That tweet couldn't be printed!")
 			print("------------------------------------------------------------")
+			logging.warning("Tweet to long to tweet")
 			self.tweet()
 
 	def new():
@@ -122,26 +131,30 @@ class MDListener(threading.Thread):
 	# Default values (this will be replaced from the config.ini):
 	lastID = 0
 	permited_ids = []
-	read_md = 120
-	read_md_timeout = 240
+	read_dm = 120
+	read_dm_timeout = 240
 
 	def run(self):
 		global api
 
 		if MDListener.lastID == 0:
-			print("Recovering the last MD... (because lastID=0)")
+			print("Recovering the last DM... (because lastID=0)")
+			logging.info("Starting DM Listener")
 			try:
 				last_dm = api.list_direct_messages()[
 					0]  # We recover the last MD, and get its ID, after the first time to run the bot, this won't be used
 
 				MDListener.lastID = last_dm.id
 				print("LastID =", MDListener.lastID)
+				logging.info("New last DM recovered: " + MDListener.lastID)
 				self.save_last_dm()
 
 			except Exception as e:
-				print("Error while trying to get the newest MD: ", e)
+				print("Error while trying to get the newest DM: ", e)
+				logging.warning("Couldn't recover the last DM: " + str(e))
 
-		t = threading.Timer(120, self.search)
+		t = threading.Timer(MDListener.read_dm, self.search)
+		logging.info("Starting timer to the first DM search")
 		t.start()
 
 	def search(self):
@@ -150,7 +163,9 @@ class MDListener(threading.Thread):
 			last_dms = api.list_direct_messages()
 		except Exception as e:
 			print("Error:", e)
-			t = threading.Timer(240, self.search)
+			logging.warning("Couldn't recover the DM list :" + str(e))
+			t = threading.Timer(MDListener.read_dm_timeout, self.search)
+			logging.info("Starting timer to the next DM search (with extended timeout)")
 			t.start()
 		else:
 			for messages in last_dms:
@@ -170,27 +185,35 @@ class MDListener(threading.Thread):
 								load_tweet(site.url)
 							except Exception as e:
 								print("Error:", e)
+								logging.error("Error recovering the tweet: " + str(e))
 
 			if len(last_dms) > 0:
-				MDListener.lastID = last_dms[0].id
-				self.save_last_dm()
+				if (last_dms_dms[0].id > MDListener.lastID):
+					MDListener.lastID = last_dms[0].id
+					self.save_last_dm()
 
-			t = threading.Timer(120, self.search)
+			t = threading.Timer(MDListener.read_dm, self.search)
+			logging.info("Starting timer to the next DM search")
 			t.start()
 
 	def save_last_dm(self):
-		config = ConfigParser()
+		try:
+			config = ConfigParser()
 
-		config.read('config.ini')
-		config.set('general', 'last_dm', str(MDListener.lastID))
+			config.read('config.ini')
+			config.set('general', 'last_dm', str(MDListener.lastID))
+			logging.info("Updated the last DM: " + MDListener.lastID)
 
-		with open('config.ini', 'w') as f:
-			config.write(f)
+			with open('config.ini', 'w') as f:
+				config.write(f)
+		except Exception as e:
+			logging.error("Error saving the last DM: " + str(e))
 
 
 def menu():
 	global tuits
 	time.sleep(1)  # A bit of delay to print properly the other initial messages of the other threads
+	logging.info("Started menu")
 	while True:
 		print("------------------------------------------------------------")
 		print("1. Print next tweet\t", end="\t")
@@ -200,7 +223,7 @@ def menu():
 		print("5. Tweet next tweet\t", end="\t")
 		print("6. When is next tweet")
 		print("7. Copy a tweet (by url)", end="\t")
-		print("8. Copy a tweet (by url & downloading pic) NOT WORKING")
+		print("8. Copy a tweet (by url & downloading pic)")
 		print("9. Shuffle list\t", end="\t\t")
 		print("10. Reload configuration")
 		print("11. Exit")
@@ -208,55 +231,71 @@ def menu():
 		user_input = input()
 		try:
 			x = int(user_input)
+			logging.info("User introduced " + str(x))
 			if x == 1:
 				if len(tuits) > 0:
 					print("------------------------------------------------------------\n")
 					print(tuits[0])
+					logging.info("Printed next tweet")
 				else:
 					print("There are not tweets to display")
+					logging.warning("No tweets to print")
 			if x == 2:
 				tuits.insert(0, load_module.Data(input("Insert the next tweet:")))
+				logging.info("Inserted next tweet")
 			elif x == 3:
 				if len(tuits) > 1:
 					del tuits[0]
 					print("The first tweet in line was deleted, the next one is:")
+					logging.info("Deleted the first tweet in line")
 					print(tuits[0])
 				elif len(tuits) == 1:
 					del tuits[0]
 					print("The last tweet was deleted")
+					logging.info("Printed next tweet")
 				else:
 					print("There are not tweets to delete")
 			elif x == 4:
 				save()
 			elif x == 5:
 				if Tweet.get_had_tweet():
+					logging.info("Canceling the timer of the next tweet")
 					t.cancel()
+					logging.info("Starting new Thread to make a new tweet")
 					Tweet.new()
 				else:
 					print("Don't abuse this function, wait until the bot has tweet at least one tweet")
+					logging.warning("User tried to cancel timer before the other thread tweeted something")
 			elif x == 6:
 				next_t = Tweet.get_next_tweet_t()
 				if next_t is None:
 					print("Bot just started, wait some seconds")
 				else:
+					logging.info("User recover the time of the next time: " + Tweet.get_next_tweet_t())
 					print("Next tweet will be tweet at", Tweet.get_next_tweet_t())
 			elif x == 7:
 				url = input("Insert the URL of the tweet to copy: ")
+				logging.info("User introduced " + url + " to copy a tweet")
 				load_tweet(url)
 			elif x == 8:
 				url = input("Insert the URL of the tweet (and download images) to copy: ")
+				logging.info("User introduced " + url + " to copy a tweet with download option")
 				load_tweet(url, True)
 			elif x == 9:
 				if len(tuits) > 1:
 					tuits = random.sample(tuits, len(tuits))
 					print("Shuffled!")
+					logging.info("Tweet list was shuffled")
 				else:
 					print("There aren't enough tweets to shuffle")
 			elif x == 10:
+				logging.info("User try to reload the configuration")
 				load(True)
 			elif x == 11:
+
 				save()
 				tuits = []
+				logging.info("Exiting program")
 				exit()
 		except ValueError:  # If not a number
 			print("Wrong input")
@@ -267,14 +306,17 @@ def save():
 	try:
 		load_module.save_to_json(tuits)
 		print("Tweets had been saved")
-	except:
+		logging.info("Tweets were saved")
+	except Exception as e:
 		print("Error while trying to save the tweets")
+		logging.error("Error: " + str(e))
 
 
 def load(just_config=False):
 	if not just_config:
 		global tuits
 		tuits = load_module.load_tweets()
+		logging.info("Received the tweet list")
 
 	print("--- Loaded configuration: ---")
 
@@ -292,14 +334,16 @@ def load(just_config=False):
 	Tweet.intervals = general_config[3]
 	print("Config: intevarls of tweets:", str(general_config[3]))
 
-	MDListener.read_md = general_config[4]
+	MDListener.read_dm = general_config[4]
 	print("Config: read DM interval:", general_config[4])
 
-	MDListener.read_md_timeout = general_config[5]
+	MDListener.read_dm_timeout = general_config[5]
 	print("Config: read DM interval (by timeout):", general_config[5])
 
 	MDListener.permited_ids = general_config[6]
 	print("Config: permited IDs for MD:", str(general_config[6]), "\n")
+
+	logging.info("Configuration updated")
 
 
 def load_tweet(url, download=False):
@@ -311,11 +355,15 @@ def load_tweet(url, download=False):
 		api.create_favorite(id)
 		print("Tweet with id:", id, "was faved")
 
+		logging.info("Tweet with id: " + id + " was faved")
+		logging.info("Tweet text: " + status.full_text)
+
 		print(status.full_text)
 
 		full_real_text = status.full_text
 		if download:
 			full_real_text = full_real_text.rsplit("https://t.co", 1)[0]
+			logging.info("Download option enable: removing the last link (t.co)")
 
 		media_files = []
 		download_names = []
@@ -324,19 +372,23 @@ def load_tweet(url, download=False):
 			if 'media' in status.entities:
 				for photo in status.extended_entities['media']:
 					media_files.append(photo['media_url'])
+					logging.info("Getting info of photo: " + photo)
 
 		if 'user_mentions' in status.entities:
 			for user in status.entities['user_mentions']:
 				to_remove = "@" + user['screen_name']
 				full_real_text = full_real_text.replace(to_remove, "")
+				logging.info("Removing: " + to_remove)
 
 		if len(media_files) == 0:
 			tuits.insert(0, load_module.Data(full_real_text))
+			logging.info("Inserting tweet to the list")
 		else:
 			print("To download: ")
 			try:
 				os.mkdir("images")
-			except FileExistsError:
+				logging.info("Created images directory")
+			except FileExistsError:  # If directory already exists
 				pass
 
 			for m in media_files:
@@ -345,20 +397,25 @@ def load_tweet(url, download=False):
 			for media_file in media_files:
 				name = wget.download(media_file)
 				download_names.append(shutil.move(src=name, dst="images"))
+				logging.info("Downloaded: " + name)
 
 			tuits.insert(0, load_module.Data(full_real_text, download_names))
+			logging.info("Inserting tweet (with images) to the list")
 	except Exception as e:
 		print("Error while trying to get the tweet:", e)
+		logging.error(str(e))
 
 
 def auth():
 	print("Starting authentication of Twitter:")
+	logging.info("Starting authentication of Twitter")
 	global api
 	global auth
 
 	# Reading from the config file
 	config = ConfigParser()
 	config.read('config.ini')
+	logging.info("Read the config.ini file")
 
 	api_key = config.get('auth', 'api_key')
 	api_secret_key = config.get('auth', 'api_secret_key')
@@ -371,26 +428,44 @@ def auth():
 
 	# Creating the api object
 	api = tweepy.API(auth)
+	logging.info("Create the api object")
 
 	# Trying to verify creentials
 	try:
 		api.verify_credentials()
 		print("Authentication OK")
+		logging.info("Authentication was successful")
 	except:
 		print("Error during authentication")
+		logging.error("Error while trying to authenticate")
 		exit()
 
 
-# Authenticate to Twitter
-auth()
+def main():
+	try:
+		os.mkdir("logs")
+	except FileExistsError:
+		pass
 
-# Loading and parsing of the tuits from a whatsapp chat conversation
-load()
+	now = datetime.datetime.now().strftime("%d-%m-%Y (%H_%M_%S)")
+	log_file_name = "logs" + os.sep + "log-" + str(now) + ".txt"
+	FORMAT = "[%(asctime)-15s] %(levelname)s (%(funcName)s): %(message)s"
+	logging.basicConfig(format=FORMAT, filename=log_file_name, level="INFO")
 
-# Starting the thread to tweet
-Tweet.new()
-md = MDListener()
-md.daemon = True
-md.start()
-# Executing the menu in the main thread
-menu()
+	# Authenticate to Twitter
+	auth()
+
+	# Loading and parsing of the tuits from a whatsapp chat conversation
+	load()
+
+	# Starting the thread to tweet
+	Tweet.new()
+	md = MDListener()
+	md.daemon = True
+	md.start()
+	# Executing the menu in the main thread
+	menu()
+
+
+if __name__ == "__main__":
+	main()

@@ -2,6 +2,7 @@ import os
 import json
 import re
 import random
+import logging
 from configparser import ConfigParser
 
 # This a fiel to parse from the old txt system to the new one with json
@@ -27,6 +28,7 @@ def old_load():
 			file = open(OG_FILE, "r", encoding="utf-8")
 		except FileNotFoundError:
 			print("You must have a " + OG_FILE + " or a " + REMAINING_FILE + " file in the same directory")
+			logging.error("Couldn't fine a file to open and recover tweets")
 			exit()
 
 		content = file.read()
@@ -38,12 +40,13 @@ def old_load():
 		tuits = re.split(CONST_BEGINNING_OF_TWEET, content)
 		del tuits[0]  # it's just an empty statement
 		print("Loaded from", REMAINING_FILE)
-	finally:
-		return tuits
+
+	return tuits
 
 
 def parse_to_json(t):
-	file = open("remaining.json", "w+", encoding="utf-8")
+	file = open(REMAINING_JSON, "w+", encoding="utf-8")
+	logging("Parsing tweets to: "+ REMAINING_JSON)
 
 	new_t = []
 	for i in t:
@@ -64,11 +67,14 @@ def load_from_json():
 			data_list.append(Data.create_from_dict(i))
 		if len(data_list) == 0:
 			print("Couldn't retrieve data from the .json")
+			logging.warning("Couldn't retrieve data  JSON: " + REMAINING_JSON)
 			return None
 		print("Loaded from", REMAINING_JSON)
+		logging.info("Loaded information from JSON: " + REMAINING_JSON)
 		return data_list
 	except:
 		print("Error trying to load the .json")
+		logging.warning("Couldn't load the JSON: " + REMAINING_JSON)
 		return None
 
 
@@ -78,6 +84,7 @@ def save_to_json(t):
 		for i in t:
 			new_t.append(i.get_dict())
 		file.write(json.dumps(new_t, indent=4, sort_keys=True))
+		logging.info("Saving data to JSON")
 
 
 class Data(object):
@@ -117,6 +124,7 @@ def load_tweets():
 		# Load from that JSON
 		tuits = load_from_json()
 
+	logging.info("Loaded: " + str(len(tuits)) + " tweets")
 	print("Loaded", len(tuits), "tweets")
 	print("Success!\n")
 
@@ -127,6 +135,7 @@ def load_general_config():
 	try:
 		config = ConfigParser()
 		config.read('config.ini')
+		logging.info("Open config.ini")
 
 		configuration_values = []
 		configuration_values.append(int(config.get('general', 'last_dm')))
@@ -147,5 +156,7 @@ def load_general_config():
 		print(e)
 		print("Error trying to get the values from config.ini, the program will use the default values")
 		configuration_values = [0, 10, 100, [1200, 1800], 120, 240, []]
+		logging.warning("Couldn't get the configuration from the config.ini file")
+		logging.warning(str(e))
 
 	return configuration_values
