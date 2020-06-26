@@ -46,10 +46,10 @@ class Tweet(threading.Thread):
 		global t
 
 		if len(tuits) == 0:
-			print("¡Se acabaron los tuits!")
+			print("We run out of Tweets!")
 			logging.warning("There are no tweets")
 			save()
-			# Intentandolo en 1000 segundos
+			# Trying it again in Tweet.delay_without_tweets seconds
 			t = threading.Timer(Tweet.delay_without_tweets, self.tweet)
 			t.start()
 
@@ -112,17 +112,20 @@ class Tweet(threading.Thread):
 			logging.warning("Tweet to long to tweet")
 			self.tweet()
 
+	@staticmethod
 	def new():
 		tw = Tweet()
 		tw.daemon = True
 		tw.start()
 
+	@staticmethod
 	def get_next_tweet_t():
 		return Tweet.next
 
 	def set_next_tweet_t(next_time):
 		Tweet.next = next_time
 
+	@staticmethod
 	def get_had_tweet():
 		return Tweet.hadTweet
 
@@ -438,7 +441,7 @@ def auth():
 	api = tweepy.API(auth)
 	logging.info("Create the api object")
 
-	# Trying to verify creentials
+	# Trying to verify credentials
 	try:
 		api.verify_credentials()
 		print("Authentication OK")
@@ -450,17 +453,14 @@ def auth():
 
 
 def main():
-	# Create the logs directory
-	try:
-		os.mkdir("logs")
-	except:
-		pass
-
-	# Setting up the logging file
 	now = datetime.datetime.now().strftime("%d-%m-%Y (%H_%M_%S)")
 	log_file_name = "logs" + os.sep + "latest-log-" + str(now) + ".txt"
 	format = "[%(asctime)-15s] %(levelname)s (%(funcName)s): %(message)s"
-	logging.basicConfig(format=format, filename=log_file_name, level="INFO") # We don't want to display DEBUG information
+
+	if not os.path.isdir("logs"):
+		os.mkdir("logs")  # Create the logs directory
+
+	logging.basicConfig(format=format, filename=log_file_name, level="INFO")  # We don't want to display DEBUG information
 
 	config = ConfigParser()
 	config.read('config.ini')
@@ -469,11 +469,14 @@ def main():
 	previous_latest = config.get('logs', 'latest')
 	if previous_latest != "None":
 		try:
+			# Getting the name of the previous latest log, and removing the "latest-" subtring
 			new_file_name = re.split("latest-", previous_latest)[0] + re.split("latest-", previous_latest)[1]
 			shutil.move(previous_latest, new_file_name)
 			logging.info("Changed name of the last log: " + new_file_name)
 		except Exception as e:
 			logging.error(str(e))
+
+	# Setting up the logging file
 
 	config.set('logs', 'latest', log_file_name)
 	logging.info("Updated the last log file: " + log_file_name)
