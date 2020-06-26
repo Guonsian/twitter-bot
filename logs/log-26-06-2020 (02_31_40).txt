@@ -1,0 +1,7 @@
+[2020-06-26 02:31:40,021] INFO (main): Open config.ini
+[2020-06-26 02:31:40,022] INFO (main): Changed name of the last log: logs\log-26-06-2020 (02_31_24).txt
+[2020-06-26 02:31:40,022] INFO (main): Updated the last log file: logs\latest-log-26-06-2020 (02_31_40).txt
+[2020-06-26 02:31:40,023] INFO (auth): Starting authentication of Twitter
+[2020-06-26 02:31:40,027] INFO (auth): Read the config.ini file
+[2020-06-26 02:31:40,028] INFO (auth): Create the api object
+[2020-06-26 02:31:40,380] ERROR (auth): Error while trying to authenticate

@@ -100,7 +100,7 @@ class Tweet(threading.Thread):
 
 				print("Next tweet in:", y, "seconds at " + str(next_time) + ". Remaining tuits:", len(tuits))
 				print("------------------------------------------------------------")
-				logging.info("Tweeted successfully, next tweet at" + str(next_time))
+				logging.info("Tweeted successfully, next tweet at " + str(next_time))
 				t = threading.Timer(y, self.tweet)
 				t.start()
 
@@ -137,7 +137,7 @@ class MDListener(threading.Thread):
 	def run(self):
 		global api
 
-		if MDListener.lastID == 0:
+		if int(MDListener.lastID) == 0:
 			print("Recovering the last DM... (because lastID=0)")
 			logging.info("Starting DM Listener")
 			try:
@@ -161,6 +161,7 @@ class MDListener(threading.Thread):
 
 		try:
 			last_dms = api.list_direct_messages()
+			logging.debug("Getting the last DMs")
 		except Exception as e:
 			print("Error:", e)
 			logging.warning("Couldn't recover the DM list :" + str(e))
@@ -188,12 +189,12 @@ class MDListener(threading.Thread):
 								logging.error("Error recovering the tweet: " + str(e))
 
 			if len(last_dms) > 0:
-				if (last_dms_dms[0].id > MDListener.lastID):
+				if (int(last_dms[0].id) > int(MDListener.lastID)):
 					MDListener.lastID = last_dms[0].id
 					self.save_last_dm()
 
 			t = threading.Timer(MDListener.read_dm, self.search)
-			logging.info("Starting timer to the next DM search")
+			logging.debug("Starting timer to the next DM search")
 			t.start()
 
 	def save_last_dm(self):
@@ -324,24 +325,31 @@ def load(just_config=False):
 
 	MDListener.lastID = general_config[0]
 	print("Config: lastID:", general_config[0])
+	logging.info("Config: lastID: " + str(general_config[0]))
 
 	Tweet.delay = general_config[1]
 	print("Config: delay:", general_config[1])
+	logging.info("Config: delay: " + str(general_config[1]))
 
 	Tweet.delay_without_tweets = general_config[2]
 	print("Config: delay without tweets:", general_config[2])
+	logging.info("Config: delay without tweets: " + str(general_config[2]))
 
 	Tweet.intervals = general_config[3]
 	print("Config: intevarls of tweets:", str(general_config[3]))
+	logging.info("Config: intevarls of tweets: " + str(general_config[3]))
 
 	MDListener.read_dm = general_config[4]
 	print("Config: read DM interval:", general_config[4])
+	logging.info("Config: read DM interval: " + str(general_config[4]))
 
 	MDListener.read_dm_timeout = general_config[5]
 	print("Config: read DM interval (by timeout):", general_config[5])
+	logging.info("Config: read DM interval (by timeout): " + str(general_config[5]))
 
 	MDListener.permited_ids = general_config[6]
 	print("Config: permited IDs for MD:", str(general_config[6]), "\n")
+	logging.info("Config: permited IDs for MD: " + str(general_config[6]))
 
 	logging.info("Configuration updated")
 
@@ -442,15 +450,36 @@ def auth():
 
 
 def main():
+	# Create the logs directory
 	try:
 		os.mkdir("logs")
-	except FileExistsError:
+	except:
 		pass
 
+	# Setting up the logging file
 	now = datetime.datetime.now().strftime("%d-%m-%Y (%H_%M_%S)")
-	log_file_name = "logs" + os.sep + "log-" + str(now) + ".txt"
-	FORMAT = "[%(asctime)-15s] %(levelname)s (%(funcName)s): %(message)s"
-	logging.basicConfig(format=FORMAT, filename=log_file_name, level="INFO")
+	log_file_name = "logs" + os.sep + "latest-log-" + str(now) + ".txt"
+	format = "[%(asctime)-15s] %(levelname)s (%(funcName)s): %(message)s"
+	logging.basicConfig(format=format, filename=log_file_name, level="INFO") # We don't want to display DEBUG information
+
+	config = ConfigParser()
+	config.read('config.ini')
+	logging.info("Open config.ini")
+
+	previous_latest = config.get('logs', 'latest')
+	if previous_latest != "None":
+		try:
+			new_file_name = re.split("latest-", previous_latest)[0] + re.split("latest-", previous_latest)[1]
+			shutil.move(previous_latest, new_file_name)
+			logging.info("Changed name of the last log: " + new_file_name)
+		except Exception as e:
+			logging.error(str(e))
+
+	config.set('logs', 'latest', log_file_name)
+	logging.info("Updated the last log file: " + log_file_name)
+
+	with open('config.ini', 'w') as f:
+		config.write(f)
 
 	# Authenticate to Twitter
 	auth()

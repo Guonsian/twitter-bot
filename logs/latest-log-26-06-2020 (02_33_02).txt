@@ -1,0 +1,32 @@
+[2020-06-26 02:33:02,551] INFO (main): Open config.ini
+[2020-06-26 02:33:02,552] INFO (main): Changed name of the last log: logs\log-26-06-2020 (02_31_40).txt
+[2020-06-26 02:33:02,552] INFO (main): Updated the last log file: logs\latest-log-26-06-2020 (02_33_02).txt
+[2020-06-26 02:33:02,553] INFO (auth): Starting authentication of Twitter
+[2020-06-26 02:33:02,558] INFO (auth): Read the config.ini file
+[2020-06-26 02:33:02,558] INFO (auth): Create the api object
+[2020-06-26 02:33:02,922] INFO (auth): Authentication was successful
+[2020-06-26 02:33:02,928] INFO (load_from_json): Loaded information from JSON: remaining.json
+[2020-06-26 02:33:02,953] INFO (load_tweets): Loaded: 1138 tweets
+[2020-06-26 02:33:02,954] INFO (load): Received the tweet list
+[2020-06-26 02:33:02,955] INFO (load_general_config): Open config.ini
+[2020-06-26 02:33:02,955] INFO (load): Config: lastID: 1276122838144110596
+[2020-06-26 02:33:02,956] INFO (load): Config: delay: 10000
+[2020-06-26 02:33:02,956] INFO (load): Config: delay without tweets: 10000
+[2020-06-26 02:33:02,957] INFO (load): Config: intevarls of tweets: [1100, 1800]
+[2020-06-26 02:33:02,957] INFO (load): Config: read DM interval: 120
+[2020-06-26 02:33:02,958] INFO (load): Config: read DM interval (by timeout): 240
+[2020-06-26 02:33:02,958] INFO (load): Config: permited IDs for MD: ['3025639366', '791245610485776384']
+[2020-06-26 02:33:02,958] INFO (load): Configuration updated
+[2020-06-26 02:33:02,959] INFO (run): Starting thread to tweet
+[2020-06-26 02:33:02,959] INFO (run): Starting timer to the first DM search
+[2020-06-26 02:33:03,961] INFO (menu): Started menu
+[2020-06-26 02:33:05,682] INFO (menu): User introduced 1
+[2020-06-26 02:33:05,684] INFO (menu): Printed next tweet
+[2020-06-26 02:33:09,193] INFO (menu): User introduced 9
+[2020-06-26 02:33:09,194] INFO (menu): Tweet list was shuffled
+[2020-06-26 02:33:10,029] INFO (menu): User introduced 1
+[2020-06-26 02:33:10,031] INFO (menu): Printed next tweet
+[2020-06-26 02:33:11,473] INFO (menu): User introduced 11
+[2020-06-26 02:33:11,482] INFO (save_to_json): Saving data to JSON
+[2020-06-26 02:33:11,483] INFO (save): Tweets were saved
+[2020-06-26 02:33:11,483] INFO (menu): Exiting program
