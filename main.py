@@ -27,7 +27,6 @@ class Tweet(threading.Thread):
 	intervals = [1200, 1800]
 
 	def run(self):
-		global tuits
 		print("Tweet printer: Starting thread")
 		logging.info("Starting thread to tweet")
 		Tweet.hadTweet = False
@@ -42,10 +41,10 @@ class Tweet(threading.Thread):
 		self.tweet()
 
 	def tweet(self):
-		global tuits
+		global tweets_list
 		global t
 
-		if len(tuits) == 0:
+		if len(tweets_list) == 0:
 			print("We run out of Tweets!")
 			logging.warning("There are no tweets")
 			save()
@@ -56,8 +55,8 @@ class Tweet(threading.Thread):
 			Tweet.hadTweet = True
 			return
 
-		to_tweet = tuits[0]  # get the first tweet
-		del tuits[0]  # The item that to be displayed will be deleted
+		to_tweet = tweets_list[0]  # get the first tweet
+		del tweets_list[0]  # The item that to be displayed will be deleted
 
 		if len(to_tweet.text) <= 280:  # Less than 281 chars
 			print("To tweet:\n" + to_tweet.text)
@@ -98,7 +97,7 @@ class Tweet(threading.Thread):
 					"%H:%M:%S")  # Get the time when the next tweet will be post, and format it to make it easier to read in the console
 				Tweet.set_next_tweet_t(next_time)
 
-				print("Next tweet in:", y, "seconds at " + str(next_time) + ". Remaining tuits:", len(tuits))
+				print("Next tweet in:", y, "seconds at " + str(next_time) + ". Remaining tuits:", len(tweets_list))
 				print("------------------------------------------------------------")
 				logging.info("Tweeted successfully, next tweet at " + str(next_time))
 				t = threading.Timer(y, self.tweet)
@@ -122,6 +121,7 @@ class Tweet(threading.Thread):
 	def get_next_tweet_t():
 		return Tweet.next
 
+	@staticmethod
 	def set_next_tweet_t(next_time):
 		Tweet.next = next_time
 
@@ -133,7 +133,7 @@ class Tweet(threading.Thread):
 class MDListener(threading.Thread):
 	# Default values (this will be replaced from the config.ini):
 	lastID = 0
-	permited_ids = []
+	permitted_ids = []
 	read_dm = 120
 	read_dm_timeout = 240
 
@@ -179,10 +179,10 @@ class MDListener(threading.Thread):
 					text = messages.message_create['message_data']['text']
 					user = messages.message_create['sender_id']
 
-					if user in self.permited_ids:
+					if user in self.permitted_ids:
 						print("\nLoad possible tweet")
 						print(text, "from:", user)
-						if user in self.permited_ids:
+						if user in self.permitted_ids:
 							try:
 								import requests
 								site = requests.get(text)
@@ -192,7 +192,7 @@ class MDListener(threading.Thread):
 								logging.error("Error recovering the tweet: " + str(e))
 
 			if len(last_dms) > 0:
-				if (int(last_dms[0].id) > int(MDListener.lastID)):
+				if int(last_dms[0].id) > int(MDListener.lastID):
 					MDListener.lastID = last_dms[0].id
 					self.save_last_dm()
 
@@ -200,7 +200,8 @@ class MDListener(threading.Thread):
 			logging.debug("Starting timer to the next DM search")
 			t.start()
 
-	def save_last_dm(self):
+	@staticmethod
+	def save_last_dm():
 		try:
 			config = ConfigParser()
 
@@ -215,7 +216,7 @@ class MDListener(threading.Thread):
 
 
 def menu():
-	global tuits
+	global tweets_list
 	time.sleep(1)  # A bit of delay to print properly the other initial messages of the other threads
 	logging.info("Started menu")
 	while True:
@@ -237,24 +238,24 @@ def menu():
 			x = int(user_input)
 			logging.info("User introduced " + str(x))
 			if x == 1:
-				if len(tuits) > 0:
+				if len(tweets_list) > 0:
 					print("------------------------------------------------------------\n")
-					print(tuits[0])
+					print(tweets_list[0])
 					logging.info("Printed next tweet")
 				else:
 					print("There are not tweets to display")
 					logging.warning("No tweets to print")
 			if x == 2:
-				tuits.insert(0, load_module.Data(input("Insert the next tweet:")))
+				tweets_list.insert(0, load_module.Data(input("Insert the next tweet:")))
 				logging.info("Inserted next tweet")
 			elif x == 3:
-				if len(tuits) > 1:
-					del tuits[0]
+				if len(tweets_list) > 1:
+					del tweets_list[0]
 					print("The first tweet in line was deleted, the next one is:")
 					logging.info("Deleted the first tweet in line")
-					print(tuits[0])
-				elif len(tuits) == 1:
-					del tuits[0]
+					print(tweets_list[0])
+				elif len(tweets_list) == 1:
+					del tweets_list[0]
 					print("The last tweet was deleted")
 					logging.info("Printed next tweet")
 				else:
@@ -286,8 +287,8 @@ def menu():
 				logging.info("User introduced " + url + " to copy a tweet with download option")
 				load_tweet(url, True)
 			elif x == 9:
-				if len(tuits) > 1:
-					tuits = random.sample(tuits, len(tuits))
+				if len(tweets_list) > 1:
+					tweets_list = random.sample(tweets_list, len(tweets_list))
 					print("Shuffled!")
 					logging.info("Tweet list was shuffled")
 				else:
@@ -298,7 +299,7 @@ def menu():
 			elif x == 11:
 
 				save()
-				tuits = []
+				tweets_list = []
 				logging.info("Exiting program")
 				exit()
 		except ValueError:  # If not a number
@@ -306,9 +307,9 @@ def menu():
 
 
 def save():
-	global tuits
+	global tweets_list
 	try:
-		load_module.save_to_json(tuits)
+		load_module.save_to_json(tweets_list)
 		print("Tweets had been saved")
 		logging.info("Tweets were saved")
 	except Exception as e:
@@ -318,8 +319,8 @@ def save():
 
 def load(just_config=False):
 	if not just_config:
-		global tuits
-		tuits = load_module.load_tweets()
+		global tweets_list
+		tweets_list = load_module.load_tweets()
 		logging.info("Received the tweet list")
 
 	print("--- Loaded configuration: ---")
@@ -339,8 +340,8 @@ def load(just_config=False):
 	logging.info("Config: delay without tweets: " + str(general_config[2]))
 
 	Tweet.intervals = general_config[3]
-	print("Config: intevarls of tweets:", str(general_config[3]))
-	logging.info("Config: intevarls of tweets: " + str(general_config[3]))
+	print("Config: intervals of tweets:", str(general_config[3]))
+	logging.info("Config: intervals of tweets: " + str(general_config[3]))
 
 	MDListener.read_dm = general_config[4]
 	print("Config: read DM interval:", general_config[4])
@@ -350,8 +351,8 @@ def load(just_config=False):
 	print("Config: read DM interval (by timeout):", general_config[5])
 	logging.info("Config: read DM interval (by timeout): " + str(general_config[5]))
 
-	MDListener.permited_ids = general_config[6]
-	print("Config: permited IDs for MD:", str(general_config[6]), "\n")
+	MDListener.permitted_ids = general_config[6]
+	print("Config: permitted IDs for MD:", str(general_config[6]), "\n")
 	logging.info("Config: permited IDs for MD: " + str(general_config[6]))
 
 	logging.info("Configuration updated")
@@ -392,7 +393,7 @@ def load_tweet(url, download=False):
 				logging.info("Removing: " + to_remove)
 
 		if len(media_files) == 0:
-			tuits.insert(0, load_module.Data(full_real_text))
+			tweets_list.insert(0, load_module.Data(full_real_text))
 			logging.info("Inserting tweet to the list")
 		else:
 			print("To download: ")
@@ -410,7 +411,7 @@ def load_tweet(url, download=False):
 				download_names.append(shutil.move(src=name, dst="images"))
 				logging.info("Downloaded: " + name)
 
-			tuits.insert(0, load_module.Data(full_real_text, download_names))
+			tweets_list.insert(0, load_module.Data(full_real_text, download_names))
 			logging.info("Inserting tweet (with images) to the list")
 	except Exception as e:
 		print("Error while trying to get the tweet:", e)
@@ -446,43 +447,34 @@ def auth():
 		api.verify_credentials()
 		print("Authentication OK")
 		logging.info("Authentication was successful")
-	except:
+	except Exception as e:
 		print("Error during authentication")
-		logging.error("Error while trying to authenticate")
+		logging.error("Error while trying to authenticate: " + str(e))
 		exit()
 
 
 def main():
+	# Creating the logs directory
+	if not os.path.isdir("logs"):
+		os.mkdir("logs")  # Create the logs directory
+
+	# Find the files in logs directory
+	files = os.listdir("logs")
+
+	# If one log has "lastest-" at its beginning
+	for file in files:
+		if "latest-" in file:
+			shutil.move("logs" + os.sep + file, "logs" + os.sep + file.replace("latest-", ""))
+
+	# Setting up the logging file
 	now = datetime.datetime.now().strftime("%d-%m-%Y (%H_%M_%S)")
 	log_file_name = "logs" + os.sep + "latest-log-" + str(now) + ".txt"
 	format = "[%(asctime)-15s] %(levelname)s (%(funcName)s): %(message)s"
 
-	if not os.path.isdir("logs"):
-		os.mkdir("logs")  # Create the logs directory
+	logging.basicConfig(format=format, filename=log_file_name, level="INFO")
+	# We don't want to display DEBUG information
 
-	logging.basicConfig(format=format, filename=log_file_name, level="INFO")  # We don't want to display DEBUG information
-
-	config = ConfigParser()
-	config.read('config.ini')
-	logging.info("Open config.ini")
-
-	previous_latest = config.get('logs', 'latest')
-	if previous_latest != "None":
-		try:
-			# Getting the name of the previous latest log, and removing the "latest-" subtring
-			new_file_name = re.split("latest-", previous_latest)[0] + re.split("latest-", previous_latest)[1]
-			shutil.move(previous_latest, new_file_name)
-			logging.info("Changed name of the last log: " + new_file_name)
-		except Exception as e:
-			logging.error(str(e))
-
-	# Setting up the logging file
-
-	config.set('logs', 'latest', log_file_name)
-	logging.info("Updated the last log file: " + log_file_name)
-
-	with open('config.ini', 'w') as f:
-		config.write(f)
+	logging.info("Created log file: " + log_file_name)
 
 	# Authenticate to Twitter
 	auth()
@@ -495,6 +487,7 @@ def main():
 	md = MDListener()
 	md.daemon = True
 	md.start()
+
 	# Executing the menu in the main thread
 	menu()
 
