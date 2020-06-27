@@ -370,6 +370,11 @@ def load_tweet(url, download=False):
 		logging.info("Tweet with id: " + id + " was faved")
 		logging.info("Tweet text: " + status.full_text)
 
+		json_log = open("json_log.txt", "a")
+		json_log.write(str(status) + "\n\n")
+		json_log.close()
+
+
 		print(status.full_text)
 
 		full_real_text = status.full_text
@@ -384,7 +389,7 @@ def load_tweet(url, download=False):
 			if 'media' in status.entities:
 				for photo in status.extended_entities['media']:
 					media_files.append(photo['media_url'])
-					logging.info("Getting info of photo: " + photo)
+					logging.info("Getting info of photo: " + photo['media_url'])
 
 		if 'user_mentions' in status.entities:
 			for user in status.entities['user_mentions']:
