@@ -97,7 +97,7 @@ class Tweet(threading.Thread):
 					"%H:%M:%S")  # Get the time when the next tweet will be post, and format it to make it easier to read in the console
 				Tweet.set_next_tweet_t(next_time)
 
-				print("Next tweet in:", y, "seconds at " + str(next_time) + ". Remaining tuits:", len(tweets_list))
+				print("Next tweet in:", y, "seconds at " + str(next_time) + ". Remaining tweets:", len(tweets_list))
 				print("------------------------------------------------------------")
 				logging.info("Tweeted successfully, next tweet at " + str(next_time))
 				t = threading.Timer(y, self.tweet)
@@ -323,7 +323,7 @@ def load(just_config=False):
 		tweets_list = load_module.load_tweets()
 		logging.info("Received the tweet list")
 
-	print("--- Loaded configuration: ---")
+	print("--- Loading configuration: ---")
 
 	general_config = load_module.load_general_config()
 
@@ -476,11 +476,11 @@ def main():
 
 	logging.info("Created log file: " + log_file_name)
 
-	# Authenticate to Twitter
-	auth()
-
 	# Loading and parsing of the tuits from a whatsapp chat conversation
 	load()
+
+	# Authenticate to Twitter
+	auth()
 
 	# Starting the thread to tweet
 	Tweet.new()
