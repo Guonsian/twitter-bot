@@ -132,6 +132,39 @@ def load_tweets():
 
 
 def load_general_config():
+
+	if not os.path.isfile("config.ini"):
+		logging.error("config.ini doesn't exist!")
+		print("Config.ini doesn't exist, creating a new configuration file and loading default values")
+		print("You will need to fill the auth values")
+
+		open("config.ini", "a").close() # Create a file: opening it and closing it
+
+		config = ConfigParser()
+		config.read("config.ini")
+		logging.info("Created and open config.ini")
+
+		config.add_section("auth")
+		config.set("auth", "api_key", "")
+		config.set("auth", "api_secret_key", "")
+		config.set("auth", "access_token", "")
+		config.set("auth", "access_token_secret", "")
+
+		config.add_section("general")
+		config.set("general", "last_dm", "0")
+		config.set("general", "delay", "10")
+		config.set("general", "delay_without_tweets", "100")
+		config.set("general", "low_interval", "1200")
+		config.set("general", "high_interval", "1800")
+		config.set("general", "read_dm", "120")
+		config.set("general", "read_dm_timeout", "240")
+		config.set("general", "permited_ids", "")
+
+		with open('config.ini', 'w') as f:
+			config.write(f)
+
+		logging.error("Exiting program: no fill values in config.ini")
+		exit()
 	try:
 		config = ConfigParser()
 		config.read('config.ini')
