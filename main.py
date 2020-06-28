@@ -66,16 +66,16 @@ class Tweet(threading.Thread):
 				print("Trying to tweet...")
 				global api
 				if to_tweet.img is not None:
-					print(to_tweet.img)
+					print("Media: " + to_tweet.img)
 					media = []
 					if isinstance(to_tweet.img, list):
 						for imagen in to_tweet.img:
 							print("Uploading", imagen)
 							media.append(api.media_upload(imagen).media_id)
 							logging.info("Upload: " + imagen)
-						print("Trying to post tweet with several images")
 						api.update_status(media_ids=media, status=to_tweet.text)
-						logging.info("Tweet with pics published")
+						print("Tweet with pic/s published")
+						logging.info("Tweet with pic/s published")
 					else:
 						print("Uploading", to_tweet.img)
 						api.update_with_media(to_tweet.img, to_tweet.text)
@@ -228,10 +228,9 @@ def menu():
 		print("5. Tweet next tweet\t", end="\t")
 		print("6. When is next tweet")
 		print("7. Copy a tweet (by url)", end="\t")
-		print("8. Copy a tweet (by url & downloading pic)")
-		print("9. Shuffle list\t", end="\t\t")
-		print("10. Reload configuration")
-		print("11. Exit")
+		print("8. Shuffle list")
+		print("9. Reload configuration\t", end="\t")
+		print("10. Exit")
 		print("------------------------------------------------------------")
 		user_input = input()
 		try:
@@ -283,21 +282,16 @@ def menu():
 				logging.info("User introduced " + url + " to copy a tweet")
 				load_tweet(url)
 			elif x == 8:
-				url = input("Insert the URL of the tweet (and download images) to copy: ")
-				logging.info("User introduced " + url + " to copy a tweet with download option")
-				load_tweet(url, True)
-			elif x == 9:
 				if len(tweets_list) > 1:
 					tweets_list = random.sample(tweets_list, len(tweets_list))
 					print("Shuffled!")
 					logging.info("Tweet list was shuffled")
 				else:
 					print("There aren't enough tweets to shuffle")
-			elif x == 10:
+			elif x == 9:
 				logging.info("User try to reload the configuration")
 				load(True)
-			elif x == 11:
-
+			elif x == 10:
 				save()
 				tweets_list = []
 				logging.info("Exiting program")
@@ -358,7 +352,7 @@ def load(just_config=False):
 	logging.info("Configuration updated")
 
 
-def load_tweet(url, download=False):
+def load_tweet(url):
 	try:
 		id = re.split("/", url)[-1]
 		if id.find("?") > 0:
@@ -378,18 +372,26 @@ def load_tweet(url, download=False):
 		print(status.full_text)
 
 		full_real_text = status.full_text
-		if download:
-			full_real_text = full_real_text.rsplit("https://t.co", 1)[0]
-			logging.info("Download option enable: removing the last link (t.co)")
+
 
 		media_files = []
 		download_names = []
+		download = False
 
-		if download:
-			if 'media' in status.entities:
-				for photo in status.extended_entities['media']:
+		if 'media' in status.entities:
+			download = True
+			for photo in status.extended_entities['media']:
+				if photo['type'] == 'photo':
 					media_files.append(photo['media_url'])
 					logging.info("Getting info of photo: " + photo['media_url'])
+				else:
+					logging.info("Get something that is not a photo: no download")
+					download = False
+					break
+
+			if download:
+				full_real_text = full_real_text.rsplit("https://t.co", 1)[0]
+				logging.info("Download option enable: removing the last link (t.co)")
 
 		if 'user_mentions' in status.entities:
 			for user in status.entities['user_mentions']:
@@ -397,7 +399,7 @@ def load_tweet(url, download=False):
 				full_real_text = full_real_text.replace(to_remove, "")
 				logging.info("Removing: " + to_remove)
 
-		if len(media_files) == 0:
+		if download is False:
 			tweets_list.insert(0, load_module.Data(full_real_text))
 			logging.info("Inserting tweet to the list")
 		else:
@@ -416,6 +418,7 @@ def load_tweet(url, download=False):
 				download_names.append(shutil.move(src=name, dst="images"))
 				logging.info("Downloaded: " + name)
 
+			print("\n") # Add a extra line
 			tweets_list.insert(0, load_module.Data(full_real_text, download_names))
 			logging.info("Inserting tweet (with images) to the list")
 	except Exception as e:
