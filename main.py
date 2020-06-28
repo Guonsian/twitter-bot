@@ -66,7 +66,7 @@ class Tweet(threading.Thread):
 				print("Trying to tweet...")
 				global api
 				if to_tweet.img is not None:
-					print("Media: " + to_tweet.img)
+					print("Media: " + str(to_tweet.img))
 					media = []
 					if isinstance(to_tweet.img, list):
 						for imagen in to_tweet.img:
