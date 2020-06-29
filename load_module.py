@@ -1,8 +1,10 @@
 import os
-import json
 import re
+import json
 import random
 import logging
+from data import Data
+
 from configparser import ConfigParser
 
 # This a fiel to parse from the old txt system to the new one with json
@@ -14,7 +16,6 @@ REMAINING_JSON = "remaining.json"
 
 
 def old_load():
-	global tuits
 	try:
 		# TODO: Remove (this doesn't make sense anymore)
 		print("Deprecated (maintained for a few versions): Trying to load reamining txt file")
@@ -46,7 +47,7 @@ def old_load():
 
 def parse_to_json(t):
 	file = open(REMAINING_JSON, "w+", encoding="utf-8")
-	logging("Parsing tweets to: "+ REMAINING_JSON)
+	logging("Parsing tweets to: " + REMAINING_JSON)
 
 	new_t = []
 	for i in t:
@@ -87,58 +88,30 @@ def save_to_json(t):
 		logging.info("Saving data to JSON")
 
 
-class Data(object):
-
-	def __init__(self, text, img=None):
-		self.text = text
-		self.img = img
-
-	def get_dict(self):
-		return {"text": self.text, "image": self.img}
-
-	def __str__(self):
-		if self.img is None:
-			return "Tweet: " + self.text
-		else:
-			if isinstance(self.img, list):
-				string = "Tweet: " + self.text + "\nImages:"
-				for image in self.img:
-					string = string + " " + image
-				return string
-			else:
-				return "Tweet: " + self.text + "\nImage: " + self.img
-
-	def create_from_dict(dict):
-		text = dict["text"]
-		img = dict["image"]
-		return Data(text, img)
-
-
 # This is the main function of this file, it retuns a list of Data objetcs
 def load_tweets():
-	tuits = load_from_json()
-	if tuits is None:
-		old_tuits = old_load()
+	tweets = load_from_json()
+	if tweets is None:
+		old_tweets = old_load()
 		# Save the files as a JSON
-		parse_to_json(old_tuits)
+		parse_to_json(old_tweets)
 		# Load from that JSON
-		tuits = load_from_json()
+		tweets = load_from_json()
 
-	logging.info("Loaded: " + str(len(tuits)) + " tweets")
-	print("Loaded", len(tuits), "tweets")
+	logging.info("Loaded: " + str(len(tweets)) + " tweets")
+	print("Loaded", len(tweets), "tweets")
 	print("Success!\n")
 
-	return tuits
+	return tweets
 
 
 def load_general_config():
-
 	if not os.path.isfile("config.ini"):
 		logging.error("config.ini doesn't exist!")
 		print("Config.ini doesn't exist, creating a new configuration file and loading default values")
 		print("You will need to fill the auth values")
 
-		open("config.ini", "a").close() # Create a file: opening it and closing it
+		open("config.ini", "a").close()  # Create a file: opening it and closing it
 
 		config = ConfigParser()
 		config.read("config.ini")

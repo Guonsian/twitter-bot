@@ -2,6 +2,7 @@ import os
 import re
 import time
 import wget
+import auth
 import random
 import shutil
 import tweepy
@@ -9,6 +10,7 @@ import logging
 import datetime
 import threading
 import load_module
+from data import Data
 from configparser import ConfigParser
 
 path = os.path.dirname(__file__)
@@ -55,14 +57,15 @@ class Tweet(threading.Thread):
 			Tweet.hadTweet = True
 			return
 
-		to_tweet = tweets_list[0]  # get the first tweet
-		del tweets_list[0]  # The item that to be displayed will be deleted
+		try:
+			to_tweet = tweets_list[0]  # get the first tweet
+			del tweets_list[0]  # The item that to be displayed will be deleted
 
-		if len(to_tweet.text) <= 280:  # Less than 281 chars
-			print("To tweet:\n" + to_tweet.text)
-			print("------------------------------------------------------------")
-			logging.info("Tweeting: " + to_tweet.text)
-			try:
+			if len(to_tweet.text) <= 280:  # Less than 281 chars
+
+				print("To tweet:\n" + to_tweet.text)
+				print("------------------------------------------------------------")
+				logging.info("Tweeting: " + to_tweet.text)
 				print("Trying to tweet...")
 				global api
 				if to_tweet.img is not None:
@@ -71,24 +74,19 @@ class Tweet(threading.Thread):
 					if isinstance(to_tweet.img, list):
 						for imagen in to_tweet.img:
 							print("Uploading", imagen)
-							media.append(api.media_upload(imagen).media_id)
+							# media.append(api.media_upload(imagen).media_id)
 							logging.info("Upload: " + imagen)
-						api.update_status(media_ids=media, status=to_tweet.text)
+						# api.update_status(media_ids=media, status=to_tweet.text)
 						print("Tweet with pic/s published")
 						logging.info("Tweet with pic/s published")
 					else:
 						print("Uploading", to_tweet.img)
-						api.update_with_media(to_tweet.img, to_tweet.text)
+						# api.update_with_media(to_tweet.img, to_tweet.text)
 						logging.info("Tweet with pic published")
 				else:
-					api.update_status(to_tweet.text)
+					# api.update_status(to_tweet.text)
 					logging.info("Tweet published")
-			except Excepction as e:
-				print("Something went wrong")
-				print("------------------------------------------------------------")
-				logging.warning("Tweet couldn't be tweeted: " + str(e))
-				self.tweet()
-			else:
+
 				print("Tweeted!", end=" ")
 				y = random.randint(Tweet.intervals[0], Tweet.intervals[1])
 
@@ -105,10 +103,16 @@ class Tweet(threading.Thread):
 
 				Tweet.hadTweet = True  # Flag para indicar que se ha tweeteado y que se puede cancelar el proceso del timer
 
-		else:
-			print("That tweet couldn't be printed!")
+			else:
+				print("That tweet couldn't be printed!")
+				print("------------------------------------------------------------")
+				logging.warning("Tweet to long to tweet")
+				self.tweet()
+
+		except Excepction as e:
+			print("Something went wrong")
 			print("------------------------------------------------------------")
-			logging.warning("Tweet to long to tweet")
+			logging.warning("Tweet couldn't be tweeted: " + str(e))
 			self.tweet()
 
 	@staticmethod
@@ -245,7 +249,7 @@ def menu():
 					print("There are not tweets to display")
 					logging.warning("No tweets to print")
 			if x == 2:
-				tweets_list.insert(0, load_module.Data(input("Insert the next tweet:")))
+				tweets_list.insert(0, Data(input("Insert the next tweet:")))
 				logging.info("Inserted next tweet")
 			elif x == 3:
 				if len(tweets_list) > 1:
@@ -347,7 +351,7 @@ def load(just_config=False):
 
 	MDListener.permitted_ids = general_config[6]
 	print("Config: permitted IDs for MD:", str(general_config[6]), "\n")
-	logging.info("Config: permited IDs for MD: " + str(general_config[6]))
+	logging.info("Config: permitted IDs for MD: " + str(general_config[6]))
 
 	logging.info("Configuration updated")
 
@@ -368,11 +372,9 @@ def load_tweet(url):
 		json_log.write(str(status) + "\n\n")
 		json_log.close()
 
-
 		print(status.full_text)
 
 		full_real_text = status.full_text
-
 
 		media_files = []
 		download_names = []
@@ -418,48 +420,12 @@ def load_tweet(url):
 				download_names.append(shutil.move(src=name, dst="images"))
 				logging.info("Downloaded: " + name)
 
-			print("\n") # Add a extra line
+			print("\n")  # Add a extra line
 			tweets_list.insert(0, load_module.Data(full_real_text, download_names))
 			logging.info("Inserting tweet (with images) to the list")
 	except Exception as e:
 		print("Error while trying to get the tweet:", e)
 		logging.error(str(e))
-
-
-def auth():
-	print("Starting authentication of Twitter:")
-	logging.info("Starting authentication of Twitter")
-	global api
-	global auth
-
-	# Reading from the config file
-	config = ConfigParser()
-	config.read('config.ini')
-	logging.info("Read the config.ini file")
-
-	api_key = config.get('auth', 'api_key')
-	api_secret_key = config.get('auth', 'api_secret_key')
-	access_token = config.get('auth', 'access_token')
-	access_token_secret = config.get('auth', 'access_token_secret')
-
-	auth = tweepy.OAuthHandler(api_key, api_secret_key)
-	auth.secure = True
-	auth.set_access_token(access_token, access_token_secret)
-
-	# Creating the api object
-	api = tweepy.API(auth)
-	logging.info("Create the api object")
-
-	# Trying to verify credentials
-	try:
-		api.verify_credentials()
-		print("Authentication OK")
-		logging.info("Authentication was successful")
-	except Exception as e:
-		print("Error during authentication")
-		logging.error("Error while trying to authenticate: " + str(e))
-		exit()
-
 
 def main():
 	# Creating the logs directory
@@ -479,7 +445,8 @@ def main():
 	log_file_name = "logs" + os.sep + "latest-log-" + str(now) + ".txt"
 	format = "[%(asctime)-15s] %(levelname)s (%(funcName)s): %(message)s"
 
-	logging.basicConfig(format=format, filename=log_file_name, level="INFO")
+	logging.basicConfig(handlers=[logging.FileHandler(filename=log_file_name, encoding='utf-8', mode='a+')],
+		format=format, level=logging.INFO)
 	# We don't want to display DEBUG information
 
 	logging.info("Created log file: " + log_file_name)
@@ -488,7 +455,7 @@ def main():
 	load()
 
 	# Authenticate to Twitter
-	auth()
+	auth.auth()
 
 	# Starting the thread to tweet
 	Tweet.new()
