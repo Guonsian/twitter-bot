@@ -86,7 +86,7 @@ def load_tweets():
 	print("Loaded", len(tweets), "tweets")
 	print("Success!\n")
 
-	return tweets
+	Data.access_list(mode=Data.set, info=tweets)
 
 
 def load_general_config():

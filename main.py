@@ -13,6 +13,9 @@ import load_module
 from data import Data
 from configparser import ConfigParser
 
+t = None
+api = None
+
 path = os.path.dirname(__file__)
 if len(path) > 0:
 	os.chdir(path)
@@ -43,10 +46,9 @@ class Tweet(threading.Thread):
 		self.tweet()
 
 	def tweet(self):
-		global tweets_list
 		global t
 
-		if len(tweets_list) == 0:
+		if Data.access_list(mode=Data.length) == 0:
 			print("We run out of Tweets!")
 			logging.warning("There are no tweets")
 			save()
@@ -58,8 +60,7 @@ class Tweet(threading.Thread):
 			return
 
 		try:
-			to_tweet = tweets_list[0]  # get the first tweet
-			del tweets_list[0]  # The item that to be displayed will be deleted
+			to_tweet = Data.access_list(mode=Data.extract)
 
 			if len(to_tweet.text) <= 280:  # Less than 281 chars
 
@@ -72,10 +73,10 @@ class Tweet(threading.Thread):
 					print("Media: " + str(to_tweet.img))
 					media = []
 					if isinstance(to_tweet.img, list):
-						for imagen in to_tweet.img:
-							print("Uploading", imagen)
-							media.append(api.media_upload(imagen).media_id)
-							logging.info("Upload: " + imagen)
+						for image in to_tweet.img:
+							print("Uploading", image)
+							media.append(api.media_upload(image).media_id)
+							logging.info("Upload: " + image)
 						api.update_status(media_ids=media, status=to_tweet.text)
 						print("Tweet with pic/s published")
 						logging.info("Tweet with pic/s published")
@@ -92,10 +93,12 @@ class Tweet(threading.Thread):
 
 				now = datetime.datetime.now()  # get a datetime object containing current date and time
 				next_time = (now + datetime.timedelta(0, y)).strftime(
-					"%H:%M:%S")  # Get the time when the next tweet will be post, and format it to make it easier to read in the console
+					"%H:%M:%S")  # Get the time when the next tweet will be post, and format it to make it easier to
+				# read in the console
 				Tweet.set_next_tweet_t(next_time)
 
-				print("Next tweet in:", y, "seconds at " + str(next_time) + ". Remaining tweets:", len(tweets_list))
+				print("Next tweet in:", y, "seconds at " + str(next_time) + ". Remaining tweets:",
+					Data.access_list(mode=Data.length))
 				print("------------------------------------------------------------")
 				logging.info("Tweeted successfully, next tweet at " + str(next_time))
 				t = threading.Timer(y, self.tweet)
@@ -143,6 +146,7 @@ class MDListener(threading.Thread):
 
 	def run(self):
 		global api
+		global t
 
 		if int(MDListener.lastID) == 0:
 			print("Recovering the last DM... (because lastID=0)")
@@ -165,7 +169,7 @@ class MDListener(threading.Thread):
 		t.start()
 
 	def search(self):
-
+		global t
 		try:
 			last_dms = api.list_direct_messages()
 			logging.debug("Getting the last DMs")
@@ -220,7 +224,6 @@ class MDListener(threading.Thread):
 
 
 def menu():
-	global tweets_list
 	time.sleep(1)  # A bit of delay to print properly the other initial messages of the other threads
 	logging.info("Started menu")
 	while True:
@@ -241,24 +244,24 @@ def menu():
 			x = int(user_input)
 			logging.info("User introduced " + str(x))
 			if x == 1:
-				if len(tweets_list) > 0:
+				if Data.access_list(mode=Data.length) > 0:
 					print("------------------------------------------------------------\n")
-					print(tweets_list[0])
+					print(Data.access_list(mode=Data.get))
 					logging.info("Printed next tweet")
 				else:
 					print("There are not tweets to display")
 					logging.warning("No tweets to print")
 			if x == 2:
-				tweets_list.insert(0, Data(input("Insert the next tweet:")))
+				Data.access_list(mode=Data.insert, info=Data(input("Insert the next tweet:")))
 				logging.info("Inserted next tweet")
 			elif x == 3:
-				if len(tweets_list) > 1:
-					del tweets_list[0]
+				if Data.access_list(mode=Data.length) > 1:
+					Data.access_list(mode=Data.extract)
 					print("The first tweet in line was deleted, the next one is:")
 					logging.info("Deleted the first tweet in line")
-					print(tweets_list[0])
-				elif len(tweets_list) == 1:
-					del tweets_list[0]
+					print(Data.access_list(mode=Data.get))
+				elif Data.access_list(mode=Data.length) == 1:
+					Data.access_list(mode=Data.extract)
 					print("The last tweet was deleted")
 					logging.info("Printed next tweet")
 				else:
@@ -286,18 +289,12 @@ def menu():
 				logging.info("User introduced " + url + " to copy a tweet")
 				load_tweet(url)
 			elif x == 8:
-				if len(tweets_list) > 1:
-					tweets_list = random.sample(tweets_list, len(tweets_list))
-					print("Shuffled!")
-					logging.info("Tweet list was shuffled")
-				else:
-					print("There aren't enough tweets to shuffle")
+				Data.access_list(mode=Data.shuffle)
 			elif x == 9:
 				logging.info("User try to reload the configuration")
 				load(True)
 			elif x == 10:
 				save()
-				tweets_list = []
 				logging.info("Exiting program")
 				exit()
 		except ValueError:  # If not a number
@@ -305,9 +302,8 @@ def menu():
 
 
 def save():
-	global tweets_list
 	try:
-		load_module.save_to_json(tweets_list)
+		load_module.save_to_json(Data.access_list(mode=Data.get_list))
 		print("Tweets had been saved")
 		logging.info("Tweets were saved")
 	except Exception as e:
@@ -317,9 +313,7 @@ def save():
 
 def load(just_config=False):
 	if not just_config:
-		global tweets_list
-		tweets_list = load_module.load_tweets()
-		logging.info("Received the tweet list")
+		load_module.load_tweets()
 
 	print("--- Loading configuration: ---")
 
@@ -368,10 +362,6 @@ def load_tweet(url):
 		logging.info("Tweet with id: " + id + " was faved")
 		logging.info("Tweet text: " + status.full_text)
 
-		json_log = open("json_log.txt", "a")
-		json_log.write(str(status) + "\n\n")
-		json_log.close()
-
 		print(status.full_text)
 
 		full_real_text = status.full_text
@@ -381,6 +371,7 @@ def load_tweet(url):
 		download = False
 
 		if 'media' in status.entities:
+			logging.info("Media found")
 			download = True
 			for photo in status.extended_entities['media']:
 				if photo['type'] == 'photo':
@@ -396,14 +387,16 @@ def load_tweet(url):
 				logging.info("Download option enable: removing the last link (t.co)")
 
 		if 'user_mentions' in status.entities:
+			logging.info("User mentions found")
 			for user in status.entities['user_mentions']:
 				to_remove = "@" + user['screen_name']
 				full_real_text = full_real_text.replace(to_remove, "")
 				logging.info("Removing: " + to_remove)
 
 		if download is False:
-			tweets_list.insert(0, load_module.Data(full_real_text))
-			logging.info("Inserting tweet to the list")
+			logging.info("Trying to insert without download")
+			Data.access_list(mode=Data.insert, info=Data(full_real_text))
+
 		else:
 			print("To download: ")
 			try:
@@ -421,11 +414,13 @@ def load_tweet(url):
 				logging.info("Downloaded: " + name)
 
 			print("\n")  # Add a extra line
-			tweets_list.insert(0, load_module.Data(full_real_text, download_names))
-			logging.info("Inserting tweet (with images) to the list")
+
+			Data.access_list(mode=Data.insert, info=Data(full_real_text, download_names))
+
 	except Exception as e:
 		print("Error while trying to get the tweet:", e)
 		logging.error(str(e))
+
 
 def main():
 	# Creating the logs directory
