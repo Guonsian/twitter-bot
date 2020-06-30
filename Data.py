@@ -1,7 +1,7 @@
 class Data(object):
 
 	def __init__(self, text, img=None):
-		self.text = text
+		self.text = text.strip()
 		self.img = img
 
 	def get_dict(self):
