@@ -13,8 +13,9 @@ import load_module
 from data import Data
 from configparser import ConfigParser
 
-t = None
 api = None
+timer_dm = None
+timer_tweet = None
 
 path = os.path.dirname(__file__)
 if len(path) > 0:
@@ -46,15 +47,15 @@ class Tweet(threading.Thread):
 		self.tweet()
 
 	def tweet(self):
-		global t
+		global timer_tweet
 
 		if Data.access_list(mode=Data.length) == 0:
 			print("We run out of Tweets!")
 			logging.warning("There are no tweets")
 			save()
 			# Trying it again in Tweet.delay_without_tweets seconds
-			t = threading.Timer(Tweet.delay_without_tweets, self.tweet)
-			t.start()
+			timer_tweet = threading.Timer(Tweet.delay_without_tweets, self.tweet)
+			timer_tweet.start()
 
 			Tweet.hadTweet = True
 			return
@@ -89,22 +90,22 @@ class Tweet(threading.Thread):
 					logging.info("Tweet published")
 
 				print("Tweeted!", end=" ")
-				y = random.randint(Tweet.intervals[0], Tweet.intervals[1])
+				seconds_to_wait = random.randint(Tweet.intervals[0], Tweet.intervals[1])
 
 				now = datetime.datetime.now()  # get a datetime object containing current date and time
-				next_time = (now + datetime.timedelta(0, y)).strftime(
+				next_time = (now + datetime.timedelta(0, seconds_to_wait)).strftime(
 					"%H:%M:%S")  # Get the time when the next tweet will be post, and format it to make it easier to
 				# read in the console
 				Tweet.set_next_tweet_t(next_time)
 
-				print("Next tweet in:", y, "seconds at " + str(next_time) + ". Remaining tweets:",
+				print("Next tweet in:", seconds_to_wait, "seconds at " + str(next_time) + ". Remaining tweets:",
 					Data.access_list(mode=Data.length))
 				print("------------------------------------------------------------")
 				logging.info("Tweeted successfully, next tweet at " + str(next_time))
-				t = threading.Timer(y, self.tweet)
-				t.start()
+				timer_tweet = threading.Timer(seconds_to_wait, self.tweet)
+				timer_tweet.start()
 
-				Tweet.hadTweet = True  # Flag para indicar que se ha tweeteado y que se puede cancelar el proceso del timer
+				Tweet.hadTweet = True  # Flag to indicate that it has tweeted and therefore, the timer can be cancelled
 
 			else:
 				print("That tweet couldn't be printed!")
@@ -146,7 +147,7 @@ class MDListener(threading.Thread):
 
 	def run(self):
 		global api
-		global t
+		global timer_dm
 
 		if int(MDListener.lastID) == 0:
 			print("Recovering the last DM... (because lastID=0)")
@@ -164,21 +165,21 @@ class MDListener(threading.Thread):
 				print("Error while trying to get the newest DM: ", e)
 				logging.warning("Couldn't recover the last DM: " + str(e))
 
-		t = threading.Timer(MDListener.read_dm, self.search)
+		timer_dm = threading.Timer(MDListener.read_dm, self.search)
 		logging.info("Starting timer to the first DM search")
-		t.start()
+		timer_dm.start()
 
 	def search(self):
-		global t
+		global timer_dm
 		try:
 			last_dms = api.list_direct_messages()
 			logging.debug("Getting the last DMs")
 		except Exception as e:
 			print("Error:", e)
 			logging.warning("Couldn't recover the DM list :" + str(e))
-			t = threading.Timer(MDListener.read_dm_timeout, self.search)
+			timer_dm = threading.Timer(MDListener.read_dm_timeout, self.search)
 			logging.info("Starting timer to the next DM search (with extended timeout)")
-			t.start()
+			timer_dm.start()
 		else:
 			for messages in last_dms:
 				if int(messages.id) <= int(MDListener.lastID):
@@ -198,15 +199,17 @@ class MDListener(threading.Thread):
 							except Exception as e:
 								print("Error:", e)
 								logging.error("Error recovering the tweet: " + str(e))
+					else:
+						logging.warning("Not authorized person sent a DM to the bot")
 
 			if len(last_dms) > 0:
 				if int(last_dms[0].id) > int(MDListener.lastID):
 					MDListener.lastID = last_dms[0].id
 					self.save_last_dm()
 
-			t = threading.Timer(MDListener.read_dm, self.search)
+			timer_dm = threading.Timer(MDListener.read_dm, self.search)
 			logging.debug("Starting timer to the next DM search")
-			t.start()
+			timer_dm.start()
 
 	@staticmethod
 	def save_last_dm():
@@ -270,8 +273,9 @@ def menu():
 				save()
 			elif x == 5:
 				if Tweet.get_had_tweet():
+					global timer_tweet
 					logging.info("Canceling the timer of the next tweet")
-					t.cancel()
+					timer_tweet.cancel()
 					logging.info("Starting new Thread to make a new tweet")
 					Tweet.new()
 				else:
