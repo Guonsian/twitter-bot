@@ -74,17 +74,17 @@ class Tweet(threading.Thread):
 					if isinstance(to_tweet.img, list):
 						for imagen in to_tweet.img:
 							print("Uploading", imagen)
-							# media.append(api.media_upload(imagen).media_id)
+							media.append(api.media_upload(imagen).media_id)
 							logging.info("Upload: " + imagen)
-						# api.update_status(media_ids=media, status=to_tweet.text)
+						api.update_status(media_ids=media, status=to_tweet.text)
 						print("Tweet with pic/s published")
 						logging.info("Tweet with pic/s published")
 					else:
 						print("Uploading", to_tweet.img)
-						# api.update_with_media(to_tweet.img, to_tweet.text)
+						api.update_with_media(to_tweet.img, to_tweet.text)
 						logging.info("Tweet with pic published")
 				else:
-					# api.update_status(to_tweet.text)
+					api.update_status(to_tweet.text)
 					logging.info("Tweet published")
 
 				print("Tweeted!", end=" ")
@@ -455,7 +455,8 @@ def main():
 	load()
 
 	# Authenticate to Twitter
-	auth.auth()
+	global api
+	api = auth.auth()
 
 	# Starting the thread to tweet
 	Tweet.new()

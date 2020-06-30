@@ -7,42 +7,26 @@ from data import Data
 
 from configparser import ConfigParser
 
-# This a fiel to parse from the old txt system to the new one with json
-
-CONST_BEGINNING_OF_TWEET = "------- THIS IS THE NEXT TWEET TO DISPLAY -------\n"
 OG_FILE = "tw.txt"
-REMAINING_FILE = "remaining.txt"
 REMAINING_JSON = "remaining.json"
 
 
 def old_load():
+
+	print("Trying to load original file")
 	try:
-		# TODO: Remove (this doesn't make sense anymore)
-		print("Deprecated (maintained for a few versions): Trying to load reamining txt file")
-		file = open(REMAINING_FILE, "r", encoding="utf-8")
-		if os.path.getsize(REMAINING_FILE) == 0:
-			raise FileNotFoundError()
-
+		file = open(OG_FILE, "r", encoding="utf-8")
 	except FileNotFoundError:
-		print("Trying to load original file")
-		try:
-			file = open(OG_FILE, "r", encoding="utf-8")
-		except FileNotFoundError:
-			print("You must have a " + OG_FILE + " or a " + REMAINING_FILE + " file in the same directory")
-			logging.error("Couldn't fine a file to open and recover tweets")
-			exit()
-
-		content = file.read()
-		tuits_in_order = re.split("[0-9]+/[0-9]+/[0-9]+ [0-9]+:[0-9]+ - [a-zA-Z0-9]+:", content)
-		tuits = random.sample(tuits_in_order, len(tuits_in_order))
-		print("Loaded from", OG_FILE)
+		print("You must have a " + OG_FILE + " or a " + REMAINING_JSON + " file in the same directory")
+		logging.error("Couldn't fine a file to open and recover tweets")
+		exit()
 	else:
 		content = file.read()
-		tuits = re.split(CONST_BEGINNING_OF_TWEET, content)
-		del tuits[0]  # it's just an empty statement
-		print("Loaded from", REMAINING_FILE)
+		tweets_in_order = re.split("[0-9]+/[0-9]+/[0-9]+ [0-9]+:[0-9]+ - [a-zA-Z0-9]+:", content)
+		tweets = random.sample(tweets_in_order, len(tweets_in_order))
+		print("Loaded from", OG_FILE)
 
-	return tuits
+	return tweets
 
 
 def parse_to_json(t):
