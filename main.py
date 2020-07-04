@@ -165,9 +165,12 @@ class MDListener(threading.Thread):
 				print("Error while trying to get the newest DM: ", e)
 				logging.warning("Couldn't recover the last DM: " + str(e))
 
-		timer_dm = threading.Timer(MDListener.read_dm, self.search)
-		logging.info("Starting timer to the first DM search")
-		timer_dm.start()
+			timer_dm = threading.Timer(MDListener.read_dm, self.search)
+			logging.info("Starting timer to the first DM search")
+			timer_dm.start()
+		else:
+			logging.info("Starting search")
+			self.search()
 
 	def search(self):
 		global timer_dm
@@ -175,7 +178,7 @@ class MDListener(threading.Thread):
 			last_dms = api.list_direct_messages()
 			logging.debug("Getting the last DMs")
 		except Exception as e:
-			print("Error:", e)
+			print("Error trying to get the last DMs:", e)
 			logging.warning("Couldn't recover the DM list :" + str(e))
 			timer_dm = threading.Timer(MDListener.read_dm_timeout, self.search)
 			logging.info("Starting timer to the next DM search (with extended timeout)")
