@@ -106,6 +106,7 @@ class Tweet(threading.Thread):
 				timer_tweet.start()
 
 				Tweet.hadTweet = True  # Flag to indicate that it has tweeted and therefore, the timer can be cancelled
+				save()
 
 			else:
 				print("That tweet couldn't be printed!")
