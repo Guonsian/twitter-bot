@@ -1,0 +1,33 @@
+[2020-07-04 12:09:19,464] INFO (main): Created log file: logs\latest-log-04-07-2020 (12_09_19).txt
+[2020-07-04 12:09:19,524] INFO (load_from_json): Loaded information from JSON: remaining.json
+[2020-07-04 12:09:19,525] INFO (load_tweets): Loaded: 1092 tweets
+[2020-07-04 12:09:19,527] INFO (access_list): Saved the tweet list
+[2020-07-04 12:09:19,533] INFO (load_general_config): Open config.ini
+[2020-07-04 12:09:19,533] INFO (load): Config: lastID: 1277955962804924430
+[2020-07-04 12:09:19,533] INFO (load): Config: delay: 1000
+[2020-07-04 12:09:19,534] INFO (load): Config: delay without tweets: 100
+[2020-07-04 12:09:19,534] INFO (load): Config: intervals of tweets: [2000, 6000]
+[2020-07-04 12:09:19,534] INFO (load): Config: read DM interval: 120
+[2020-07-04 12:09:19,535] INFO (load): Config: read DM interval (by timeout): 480
+[2020-07-04 12:09:19,536] INFO (load): Config: permitted IDs for MD: ['3025639366', '791245610485776384', '1274360723930570753']
+[2020-07-04 12:09:19,536] INFO (load): Configuration updated
+[2020-07-04 12:09:19,536] INFO (auth): Starting authentication of Twitter
+[2020-07-04 12:09:19,536] INFO (auth): Read the config.ini file
+[2020-07-04 12:09:19,537] INFO (auth): Create the api object
+[2020-07-04 12:09:20,750] INFO (auth): Authentication was successful
+[2020-07-04 12:09:20,751] INFO (run): Starting thread to tweet
+[2020-07-04 12:09:20,752] INFO (run): Starting search
+[2020-07-04 12:09:21,640] ERROR (search): Error recovering the tweet: Invalid URL 'Si pone que se ha enviado desde Joseos4Twitter ha sido el bot, luego yo a vecesrepondo o pongo un tweet si no tengo el bot encendido por lo que sea': No schema supplied. Perhaps you meant http://Si pone que se ha enviado desde Joseos4Twitter ha sido el bot, luego yo a vecesrepondo o pongo un tweet si no tengo el bot encendido por lo que sea?
+[2020-07-04 12:09:21,643] ERROR (search): Error recovering the tweet: No connection adapters were found for 'La mayoría de tweets las realiza el bot, como coger los tweets y twitearlos https://t.co/NNrtFcrz3C'
+[2020-07-04 12:09:21,752] INFO (menu): Started menu
+[2020-07-04 12:09:24,119] INFO (load_tweet): Tweet with id: 1279314436768047105 was faved
+[2020-07-04 12:09:24,119] INFO (load_tweet): Tweet text: e^x looking into the integral of e^x
+
+(Submitted by @_cicad) https://t.co/UKm7dylelB
+[2020-07-04 12:09:24,121] INFO (load_tweet): Media found
+[2020-07-04 12:09:24,121] INFO (load_tweet): Getting info of photo: http://pbs.twimg.com/media/EcEJsp5XkAEGf-w.jpg
+[2020-07-04 12:09:24,121] INFO (load_tweet): Download option enable: removing the last link (t.co)
+[2020-07-04 12:09:24,121] INFO (load_tweet): User mentions found
+[2020-07-04 12:09:24,121] INFO (load_tweet): Removing: @_cicad
+[2020-07-04 12:09:24,500] INFO (load_tweet): Downloaded: EcEJsp5XkAEGf-w.jpg
+[2020-07-04 12:09:24,501] INFO (access_list): Inserting tweet to the list

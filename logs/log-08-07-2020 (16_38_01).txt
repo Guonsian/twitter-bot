@@ -1,0 +1,44 @@
+[2020-07-08 16:38:01,363] INFO (main): Created log file: logs\latest-log-08-07-2020 (16_38_01).txt
+[2020-07-08 16:38:01,392] INFO (load_from_json): Loaded information from JSON: remaining.json
+[2020-07-08 16:38:01,393] INFO (load_tweets): Loaded: 1092 tweets
+[2020-07-08 16:38:01,395] INFO (access_list): Saved the tweet list
+[2020-07-08 16:38:01,402] INFO (load_general_config): Open config.ini
+[2020-07-08 16:38:01,403] INFO (load): Config: lastID: 1277955962804924430
+[2020-07-08 16:38:01,403] INFO (load): Config: delay: 1000
+[2020-07-08 16:38:01,403] INFO (load): Config: delay without tweets: 100
+[2020-07-08 16:38:01,433] INFO (load): Config: intervals of tweets: [2000, 6000]
+[2020-07-08 16:38:01,433] INFO (load): Config: read DM interval: 120
+[2020-07-08 16:38:01,433] INFO (load): Config: read DM interval (by timeout): 480
+[2020-07-08 16:38:01,434] INFO (load): Config: permitted IDs for MD: ['3025639366', '791245610485776384', '1274360723930570753']
+[2020-07-08 16:38:01,434] INFO (load): Configuration updated
+[2020-07-08 16:38:01,434] INFO (auth): Starting authentication of Twitter
+[2020-07-08 16:38:01,435] INFO (auth): Read the config.ini file
+[2020-07-08 16:38:01,435] INFO (auth): Create the api object
+[2020-07-08 16:38:02,587] INFO (auth): Authentication was successful
+[2020-07-08 16:38:02,588] INFO (run): Starting thread to tweet
+[2020-07-08 16:38:02,589] INFO (run): Starting search
+[2020-07-08 16:38:03,590] INFO (menu): Started menu
+[2020-07-08 16:38:05,075] ERROR (load_tweet): [{'code': 139, 'message': 'You have already favorited this status.'}]
+[2020-07-08 16:38:07,103] ERROR (load_tweet): [{'code': 139, 'message': 'You have already favorited this status.'}]
+[2020-07-08 16:38:09,144] INFO (menu): User introduced 1
+[2020-07-08 16:38:09,145] INFO (access_list): Returned the length of the list
+[2020-07-08 16:38:09,148] INFO (access_list): Returned the first element of the list
+[2020-07-08 16:38:09,181] INFO (menu): Printed next tweet
+[2020-07-08 16:38:09,502] ERROR (load_tweet): [{'code': 139, 'message': 'You have already favorited this status.'}]
+[2020-07-08 16:38:11,493] ERROR (load_tweet): [{'code': 139, 'message': 'You have already favorited this status.'}]
+[2020-07-08 16:38:13,526] ERROR (load_tweet): [{'code': 139, 'message': 'You have already favorited this status.'}]
+[2020-07-08 16:38:13,885] INFO (menu): User introduced 1
+[2020-07-08 16:38:13,887] INFO (access_list): Returned the length of the list
+[2020-07-08 16:38:13,889] INFO (access_list): Returned the first element of the list
+[2020-07-08 16:38:13,891] INFO (menu): Printed next tweet
+[2020-07-08 16:38:15,593] ERROR (load_tweet): [{'code': 139, 'message': 'You have already favorited this status.'}]
+[2020-07-08 16:38:17,620] ERROR (load_tweet): [{'code': 139, 'message': 'You have already favorited this status.'}]
+[2020-07-08 16:38:19,153] INFO (menu): User introduced 4
+[2020-07-08 16:38:19,155] INFO (access_list): Extracted the first element of the list
+[2020-07-08 16:38:19,158] INFO (access_list): Inserting (append) tweet to the list
+[2020-07-08 16:38:19,669] ERROR (load_tweet): [{'code': 139, 'message': 'You have already favorited this status.'}]
+[2020-07-08 16:38:21,298] INFO (menu): User introduced 10
+[2020-07-08 16:38:21,299] INFO (access_list): Returned the whole list
+[2020-07-08 16:38:21,309] INFO (save_to_json): Saving data to JSON
+[2020-07-08 16:38:21,310] INFO (save): Tweets were saved
+[2020-07-08 16:38:21,310] INFO (menu): Exiting program

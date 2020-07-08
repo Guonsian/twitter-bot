@@ -52,7 +52,7 @@ class Tweet(threading.Thread):
 		if Data.access_list(mode=Data.length) == 0:
 			print("We run out of Tweets!")
 			logging.warning("There are no tweets")
-			save()
+			save(output=True)
 			# Trying it again in Tweet.delay_without_tweets seconds
 			timer_tweet = threading.Timer(Tweet.delay_without_tweets, self.tweet)
 			timer_tweet.start()
@@ -115,10 +115,10 @@ class Tweet(threading.Thread):
 				self.tweet()
 
 		except Excepction as e:
-			print("Something went wrong")
+			print("Something went wrong, the program will exit")
 			print("------------------------------------------------------------")
-			logging.warning("Tweet couldn't be tweeted: " + str(e))
-			self.tweet()
+			logging.error("Tweet couldn't be tweeted: " + str(e))
+			exit()
 
 	@staticmethod
 	def new():
@@ -238,7 +238,7 @@ def menu():
 		print("1. Print next tweet\t", end="\t")
 		print("2. Enter the next tweet")
 		print("3. Delete next tweet\t", end="\t")
-		print("4. Save remaining tweets")
+		print("4. Put the tweet at the end of the queue")
 		print("5. Tweet next tweet\t", end="\t")
 		print("6. When is next tweet")
 		print("7. Copy a tweet (by url)", end="\t")
@@ -274,7 +274,11 @@ def menu():
 				else:
 					print("There are not tweets to delete")
 			elif x == 4:
-				save()
+				if Data.access_list(mode=Data.length) > 1:
+					Data.access_list(mode=Data.insert_last, info=Data.access_list(mode=Data.extract))
+
+					print("Sent the first tweet in queue to the last position")
+					logging.info("Sent the first tweet in queue to the last position")
 			elif x == 5:
 				if Tweet.get_had_tweet():
 					global timer_tweet
@@ -302,17 +306,18 @@ def menu():
 				logging.info("User try to reload the configuration")
 				load(True)
 			elif x == 10:
-				save()
+				save(output=True)
 				logging.info("Exiting program")
 				exit()
 		except ValueError:  # If not a number
 			print("Wrong input")
 
 
-def save():
+def save(output=False):
 	try:
 		load_module.save_to_json(Data.access_list(mode=Data.get_list))
-		print("Tweets had been saved")
+		if output:
+			print("Tweets had been saved")
 		logging.info("Tweets were saved")
 	except Exception as e:
 		print("Error while trying to save the tweets")

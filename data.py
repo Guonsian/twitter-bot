@@ -14,6 +14,7 @@ class Data(object):
 	get_list = "GET_LIST"
 	length = "LENGTH"
 	insert = "INSERT"
+	insert_last = "INSERT_LAST"
 
 	def __init__(self, text, img=None):
 		self.text = text.strip()
@@ -73,3 +74,7 @@ class Data(object):
 			if info is not None:
 				logging.info("Inserting tweet to the list")
 				Data.list.insert(0, info)
+		elif mode == Data.insert_last:
+			if info is not None:
+				logging.info("Inserting (append) tweet to the list")
+				Data.list.append(info)
