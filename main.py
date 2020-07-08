@@ -114,11 +114,10 @@ class Tweet(threading.Thread):
 				logging.warning("Tweet to long to tweet")
 				self.tweet()
 
-		except Excepction as e:
-			print("Something went wrong, the program will exit")
+		except Exception as e:
+			print("Something went wrong, the program will stop tweeting, restart it if you want to")
 			print("------------------------------------------------------------")
 			logging.error("Tweet couldn't be tweeted: " + str(e))
-			exit()
 
 	@staticmethod
 	def new():
@@ -197,9 +196,14 @@ class MDListener(threading.Thread):
 						print(text, "from:", user)
 						if user in self.permitted_ids:
 							try:
-								import requests
-								site = requests.get(text)
-								load_tweet(site.url)
+								if text[0:5] == "text:" or text[0:5] == "Text:":
+									Data.access_list(mode=Data.insert, info=Data(text[5:].strip()))
+									logging.info("Inserted next tweet")
+								else:
+									import requests
+									site = requests.get(text)
+									load_tweet(site.url)
+
 							except Exception as e:
 								print("Error:", e)
 								logging.error("Error recovering the tweet: " + str(e))
