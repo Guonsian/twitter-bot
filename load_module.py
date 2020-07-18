@@ -116,6 +116,7 @@ def load_general_config():
 		config.set("general", "high_interval", "1800")
 		config.set("general", "read_dm", "120")
 		config.set("general", "read_dm_timeout", "240")
+		config.set("general", "night_mode_extra_delay", "7200")
 		config.set("general", "permited_ids", "")
 
 		with open('config.ini', 'w') as f:
