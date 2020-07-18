@@ -63,6 +63,7 @@ def load_from_json():
 		return None
 
 
+# Saves the tweet list
 def save_to_json(t):
 	with open(REMAINING_JSON, "w+", encoding="utf-8") as file:
 		new_t = []
