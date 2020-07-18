@@ -32,6 +32,9 @@ class Tweet(threading.Thread):
 	delay_without_tweets = 1000
 	intervals = [1200, 1800]
 
+	# add one count every time it fails
+	counter = 0
+
 	def run(self):
 		print("Tweet printer: Starting thread")
 		logging.info("Starting thread to tweet")
@@ -104,6 +107,7 @@ class Tweet(threading.Thread):
 				logging.info("Tweeted successfully, next tweet at " + str(next_time))
 				timer_tweet = threading.Timer(seconds_to_wait, self.tweet)
 				timer_tweet.start()
+				Tweet.counter = 0
 
 				Tweet.hadTweet = True  # Flag to indicate that it has tweeted and therefore, the timer can be cancelled
 				save()
@@ -115,9 +119,18 @@ class Tweet(threading.Thread):
 				self.tweet()
 
 		except Exception as e:
-			print("Something went wrong, the program will stop tweeting, restart it if you want to")
-			print("------------------------------------------------------------")
 			logging.error("Tweet couldn't be tweeted: " + str(e))
+			Tweet.counter = Tweet.counter + 1
+			Data.access_list(mode=Data.insert_last, info=to_tweet)
+
+			if Tweet.counter >= 5:
+				print("5 times in a row a tweet couldn't be used, the program will exit")
+				os._exit(1)
+			else:
+				print("Something went wrong trying to tweet, trying to tweet in 100 seconds")
+				print("------------------------------------------------------------")
+				timer_tweet = threading.Timer(100, self.tweet)
+				timer_tweet.start()
 
 	@staticmethod
 	def new():
