@@ -31,6 +31,7 @@ class Tweet(threading.Thread):
 	delay = 10
 	delay_without_tweets = 1000
 	intervals = [1200, 1800]
+	night_mode_extra_delay = 7200
 
 	# add one count every time it fails
 	counter = 0
@@ -96,6 +97,9 @@ class Tweet(threading.Thread):
 				seconds_to_wait = random.randint(Tweet.intervals[0], Tweet.intervals[1])
 
 				now = datetime.datetime.now()  # get a datetime object containing current date and time
+				if now.hour in range(1, 9):
+					seconds_to_wait = seconds_to_wait + Tweet.night_mode_extra_delay
+
 				next_time = (now + datetime.timedelta(0, seconds_to_wait)).strftime(
 					"%H:%M:%S")  # Get the time when the next tweet will be post, and format it to make it easier to
 				# read in the console
@@ -373,9 +377,13 @@ def load(just_config=False):
 	print("Config: read DM interval (by timeout):", general_config[5])
 	logging.info("Config: read DM interval (by timeout): " + str(general_config[5]))
 
-	MDListener.permitted_ids = general_config[6]
-	print("Config: permitted IDs for MD:", str(general_config[6]), "\n")
-	logging.info("Config: permitted IDs for MD: " + str(general_config[6]))
+	Tweet.night_mode_extra_delay = general_config[6]
+	print("Config: read night mode extra delay:", general_config[6])
+	logging.info("Config: read night mode extra delay: " + str(general_config[6]))
+
+	MDListener.permitted_ids = general_config[7]
+	print("Config: permitted IDs for MD:", str(general_config[7]), "\n")
+	logging.info("Config: permitted IDs for MD: " + str(general_config[7]))
 
 	logging.info("Configuration updated")
 

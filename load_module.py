@@ -140,13 +140,16 @@ def load_general_config():
 		configuration_values.append(int(config.get('general', 'read_dm')))
 		configuration_values.append(int(config.get('general', 'read_dm_timeout')))
 
+		configuration_values.append(int(config.get('general', 'night_mode_extra_delay')))
+
+
 		permited_ids = config.get('general', 'permited_ids').split(',')
 		configuration_values.append(permited_ids)
 
 	except Exception as e:
 		print(e)
 		print("Error trying to get the values from config.ini, the program will use the default values")
-		configuration_values = [0, 10, 100, [1200, 1800], 120, 240, []]
+		configuration_values = [0, 10, 100, [1200, 1800], 120, 240, 7200, []]
 		logging.warning("Couldn't get the configuration from the config.ini file")
 		logging.warning(str(e))
 
