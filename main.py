@@ -98,7 +98,11 @@ class Tweet(threading.Thread):
 
 				now = datetime.datetime.now()  # get a datetime object containing current date and time
 				if now.hour in range(1, 9):
-					seconds_to_wait = seconds_to_wait + Tweet.night_mode_extra_delay
+					seconds_until_end_of_night_mode = (now.replace(hour=9, minute=0, second=0, microsecond=0) - now).total_seconds()
+					if seconds_until_end_of_night_mode < night_mode_extra_delay:
+						seconds_to_wait = seconds_to_wait + seconds_until_end_of_night_mode
+					else:
+						seconds_to_wait = seconds_to_wait + Tweet.night_mode_extra_delay
 
 				next_time = (now + datetime.timedelta(0, seconds_to_wait)).strftime(
 					"%H:%M:%S")  # Get the time when the next tweet will be post, and format it to make it easier to
@@ -479,7 +483,7 @@ def main():
 	format = "[%(asctime)-15s] %(levelname)s (%(funcName)s): %(message)s"
 
 	logging.basicConfig(handlers=[logging.FileHandler(filename=log_file_name, encoding='utf-8', mode='a+')],
-		format=format, level=logging.INFO)
+						format=format, level=logging.INFO)
 	# We don't want to display DEBUG information
 
 	logging.info("Created log file: " + log_file_name)
