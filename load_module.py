@@ -1,6 +1,9 @@
 import os
 import re
+import wget
+import auth
 import json
+import shutil
 import random
 import logging
 from data import Data
@@ -12,7 +15,6 @@ REMAINING_JSON = "remaining.json"
 
 
 def old_load():
-
 	print("Trying to load original file")
 	try:
 		file = open(OG_FILE, "r", encoding="utf-8")
@@ -61,6 +63,17 @@ def load_from_json():
 		print("Error trying to load the .json")
 		logging.warning("Couldn't load the JSON: " + REMAINING_JSON)
 		return None
+
+
+def save(output=False):
+	try:
+		save_to_json(Data.access_list(mode=Data.get_list))
+		if output:
+			print("Tweets had been saved")
+		logging.info("Tweets were saved")
+	except Exception as e:
+		print("Error while trying to save the tweets")
+		logging.error("Error: " + str(e))
 
 
 # Saves the tweet list
@@ -143,7 +156,6 @@ def load_general_config():
 
 		configuration_values.append(int(config.get('general', 'night_mode_extra_delay')))
 
-
 		permited_ids = config.get('general', 'permited_ids').split(',')
 		configuration_values.append(permited_ids)
 
@@ -155,3 +167,78 @@ def load_general_config():
 		logging.warning(str(e))
 
 	return configuration_values
+
+
+def load_new_tweet(url):
+	api = auth.get_api()
+
+	try:
+		id = re.split("/", url)[-1]
+		if id.find("?") > 0:
+			id = id[:id.find("?")]
+		status = api.get_status(id, tweet_mode="extended")
+		api.create_favorite(id)
+		print("Tweet with id:", id, "was faved")
+
+		logging.info("Tweet with id: " + id + " was faved")
+		logging.info("Tweet text: " + status.full_text)
+
+		print(status.full_text)
+
+		full_real_text = status.full_text
+
+		media_files = []
+		download_names = []
+		download = False
+
+		if 'media' in status.entities:
+			logging.info("Media found")
+			download = True
+			for photo in status.extended_entities['media']:
+				if photo['type'] == 'photo':
+					media_files.append(photo['media_url'])
+					logging.info("Getting info of photo: " + photo['media_url'])
+				else:
+					logging.info("Get something that is not a photo: no download")
+					download = False
+					break
+
+			if download:
+				full_real_text = full_real_text.rsplit("https://t.co", 1)[0]
+				logging.info("Download option enable: removing the last link (t.co)")
+
+		if 'user_mentions' in status.entities:
+			logging.info("User mentions found")
+			for user in status.entities['user_mentions']:
+				to_remove = "@" + user['screen_name']
+				full_real_text = full_real_text.replace(to_remove, "")
+				logging.info("Removing: " + to_remove)
+
+		if download is False:
+			logging.info("Trying to insert without download")
+			Data.access_list(mode=Data.insert, info=Data(full_real_text))
+
+		else:
+			print("To download: ")
+			try:
+				os.mkdir("images")
+				logging.info("Created images directory")
+			except FileExistsError:  # If directory already exists
+				pass
+
+			for m in media_files:
+				print(m)
+
+			for media_file in media_files:
+				name = wget.download(media_file)
+				download_names.append(shutil.move(src=name, dst="images"))
+				logging.info("Downloaded: " + name)
+
+			print("\n")  # Add a extra line
+
+			Data.access_list(mode=Data.insert, info=Data(full_real_text, download_names))
+			save()
+
+	except Exception as e:
+		print("Error while trying to get the tweet:", e)
+		logging.error(str(e))

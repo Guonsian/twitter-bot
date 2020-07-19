@@ -2,8 +2,12 @@ import tweepy
 import logging
 from configparser import ConfigParser
 
+api_object = None
+
 
 def auth():
+	global api_object
+
 	print("Starting authentication of Twitter:")
 	logging.info("Starting authentication of Twitter")
 
@@ -22,12 +26,12 @@ def auth():
 	auth_object.set_access_token(access_token, access_token_secret)
 
 	# Creating the api object
-	api = tweepy.API(auth_object)
+	api_object = tweepy.API(auth_object)
 	logging.info("Create the api object")
 
 	# Trying to verify credentials
 	try:
-		api.verify_credentials()
+		api_object.verify_credentials()
 		print("Authentication OK")
 		logging.info("Authentication was successful")
 	except Exception as e:
@@ -35,4 +39,8 @@ def auth():
 		logging.error("Error while trying to authenticate: " + str(e))
 		exit()
 
-	return api
+
+def get_api():
+	if api_object is None:
+		auth()
+	return api_object
