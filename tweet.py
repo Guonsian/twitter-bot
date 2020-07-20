@@ -91,7 +91,7 @@ class Tweet(threading.Thread):
 				now = datetime.datetime.now()  # get a datetime object containing current date and time
 				if now.hour in range(1, 9):
 					seconds_until_end_of_night_mode = (now.replace(hour=9, minute=0, second=0, microsecond=0) - now).total_seconds()
-					if seconds_until_end_of_night_mode < night_mode_extra_delay:
+					if seconds_until_end_of_night_mode < Tweet.night_mode_extra_delay:
 						seconds_to_wait = seconds_to_wait + seconds_until_end_of_night_mode
 					else:
 						seconds_to_wait = seconds_to_wait + Tweet.night_mode_extra_delay
@@ -100,6 +100,7 @@ class Tweet(threading.Thread):
 					"%H:%M:%S")  # Get the time when the next tweet will be post, and format it to make it easier to
 				# read in the console
 				Tweet.set_next_tweet_t(next_time)
+
 
 				print("Next tweet in:", seconds_to_wait, "seconds at " + str(next_time) + ". Remaining tweets:",
 					Data.access_list(mode=Data.length))
@@ -127,9 +128,14 @@ class Tweet(threading.Thread):
 				print("5 times in a row a tweet couldn't be used, the program will exit")
 				os._exit(1)
 			else:
-				print("Something went wrong trying to tweet, trying to tweet in 100 seconds")
+				print("Something went wrong trying to tweet, trying to tweet in 100/1000 seconds")
 				print("------------------------------------------------------------")
-				Tweet.timer_tweet = threading.Timer(100, self.tweet)
+				now = datetime.datetime.now()
+				if now.hour in range(1, 9):
+					time_to_wait = 1000
+				else:
+					time_to_wait = 100
+				Tweet.timer_tweet = threading.Timer(time_to_wait, self.tweet)
 				Tweet.timer_tweet.start()
 
 	@staticmethod
