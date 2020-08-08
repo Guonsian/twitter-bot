@@ -9,6 +9,7 @@ from configparser import ConfigParser
 
 timer_dm = None
 api = None
+favorites = []
 
 class MDListener(threading.Thread):
 	# Default values (this will be replaced from the config.ini):
@@ -22,6 +23,16 @@ class MDListener(threading.Thread):
 		global timer_dm
 
 		api = auth.get_api()
+
+		try:
+			global favorites
+			temp_fav = api.favorites()
+			for fav in temp_fav:
+				favorites.append(fav.id)
+			logging.info("Loaded the last " + str(len(favorites)) + " fav tweets")
+		except Exception as e:
+			print("Error while trying to get the last favorites tweets: ", e)
+			logging.warning("Couldn't recover the last favorites tweets: " + str(e))
 
 		if int(MDListener.lastID) == 0:
 			print("Recovering the last DM... (because lastID=0)")
@@ -48,8 +59,23 @@ class MDListener(threading.Thread):
 
 	def search(self):
 		global timer_dm
+		global favorites
 		try:
-			last_dms = api.list_direct_messages()
+			new_favs = api.favorites()
+			for fav in new_favs:
+				if fav.id not in favorites:
+					load_module.load_new_tweet("https://twitter.com/i/status/" + str(fav.id), from_fav=True)
+					logging.info("Loaded tweet with id:" + str(fav.id))
+			favorites = []
+			for fav in new_favs:
+				favorites.append(fav.id)
+		except Exception as e:
+			print("Error trying to get the last favs:", e)
+			logging.warning("Couldn't recover the last favs: " + str(e))
+
+
+		try:
+			last_dms = [] # api.list_direct_messages()
 			logging.debug("Getting the last DMs")
 		except Exception as e:
 			print("Error trying to get the last DMs:", e)

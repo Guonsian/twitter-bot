@@ -6,6 +6,7 @@ import json
 import shutil
 import random
 import logging
+import mdlistener
 from data import Data
 
 from configparser import ConfigParser
@@ -169,7 +170,7 @@ def load_general_config():
 	return configuration_values
 
 
-def load_new_tweet(url):
+def load_new_tweet(url, from_fav=False):
 	api = auth.get_api()
 
 	try:
@@ -177,10 +178,25 @@ def load_new_tweet(url):
 		if id.find("?") > 0:
 			id = id[:id.find("?")]
 		status = api.get_status(id, tweet_mode="extended")
-		api.create_favorite(id)
-		print("Tweet with id:", id, "was faved")
+		mdlistener.favorites.append(id)
 
-		logging.info("Tweet with id: " + id + " was faved")
+		if not from_fav:
+			api.create_favorite(id)
+			print("Tweet with id:", id, "was faved")
+			logging.info("Tweet with id: " + id + " was faved")
+		else:
+			print("Received fav with tweet id: " + str(id))
+			logging.info("Received fav with tweet id: " + str(id))
+			if 'user_mentions' in status.entities:
+				if len(status.entities['user_mentions']) > 0:
+
+					print("This could be an answer, so then this is not process\n")
+					logging.info("This could be an answer, so then this is not process")
+					print(status.full_text)
+					logging.info("Tweet text: " + status.full_text)
+					print("------------------------------------------------------------")
+					return
+
 		logging.info("Tweet text: " + status.full_text)
 
 		print(status.full_text)
@@ -208,7 +224,8 @@ def load_new_tweet(url):
 				logging.info("Download option enable: removing the last link (t.co)")
 
 		if 'user_mentions' in status.entities:
-			logging.info("User mentions found")
+			if len(status.entities['user_mentions']) > 0:
+				logging.info("User mentions found")
 			for user in status.entities['user_mentions']:
 				to_remove = "@" + user['screen_name']
 				full_real_text = full_real_text.replace(to_remove, "")
@@ -238,6 +255,8 @@ def load_new_tweet(url):
 
 			Data.access_list(mode=Data.insert, info=Data(full_real_text, download_names))
 			save()
+
+		print("------------------------------------------------------------")
 
 	except Exception as e:
 		print("Error while trying to get the tweet:", e)
