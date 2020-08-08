@@ -75,7 +75,7 @@ class MDListener(threading.Thread):
 
 
 		try:
-			last_dms = [] # api.list_direct_messages()
+			last_dms = api.list_direct_messages()
 			logging.debug("Getting the last DMs")
 		except Exception as e:
 			print("Error trying to get the last DMs:", e)
