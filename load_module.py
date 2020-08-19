@@ -178,7 +178,9 @@ def load_new_tweet(url, from_fav=False):
 		if id.find("?") > 0:
 			id = id[:id.find("?")]
 		status = api.get_status(id, tweet_mode="extended")
-		mdlistener.favorites.append(id)
+		if id in mdlistener.favorites_list:
+			return
+		mdlistener.favorites_list.append(id)
 
 		if not from_fav:
 			api.create_favorite(id)
@@ -233,7 +235,10 @@ def load_new_tweet(url, from_fav=False):
 
 		if download is False:
 			logging.info("Trying to insert without download")
-			Data.access_list(mode=Data.insert, info=Data(full_real_text))
+			if from_fav:
+				Data.access_list(mode=Data.insert_random, info=Data(full_real_text))
+			else:
+				Data.access_list(mode=Data.insert, info=Data(full_real_text))
 
 		else:
 			print("To download: ")
@@ -253,7 +258,10 @@ def load_new_tweet(url, from_fav=False):
 
 			print("\n")  # Add a extra line
 
-			Data.access_list(mode=Data.insert, info=Data(full_real_text, download_names))
+			if from_fav:
+				Data.access_list(mode=Data.insert_random, info=Data(full_real_text, download_names))
+			else:
+				Data.access_list(mode=Data.insert, info=Data(full_real_text, download_names))
 			save()
 
 		print("------------------------------------------------------------")

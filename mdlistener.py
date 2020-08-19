@@ -9,7 +9,7 @@ from configparser import ConfigParser
 
 timer_dm = None
 api = None
-favorites = []
+favorites_list = []
 
 class MDListener(threading.Thread):
 	# Default values (this will be replaced from the config.ini):
@@ -25,14 +25,15 @@ class MDListener(threading.Thread):
 		api = auth.get_api()
 
 		try:
-			global favorites
-			temp_fav = api.favorites()
-			for fav in temp_fav:
-				favorites.append(fav.id)
-			logging.info("Loaded the last " + str(len(favorites)) + " fav tweets")
+			global favorites_list
+			if len(favorites_list) == 0:
+				temp_fav = api.favorites(count=200)
+				for fav in temp_fav:
+					favorites_list.append(fav.id)
+				logging.info("Loaded the last " + str(len(favorites_list)) + " fav tweets")
 		except Exception as e:
-			print("Error while trying to get the last favorites tweets: ", e)
-			logging.warning("Couldn't recover the last favorites tweets: " + str(e))
+			print("Error while trying to get the last favorites_list tweets: ", e)
+			logging.warning("Couldn't recover the last favorites_list tweets: " + str(e))
 
 		if int(MDListener.lastID) == 0:
 			print("Recovering the last DM... (because lastID=0)")
@@ -59,16 +60,15 @@ class MDListener(threading.Thread):
 
 	def search(self):
 		global timer_dm
-		global favorites
+		global favorites_list
 		try:
-			new_favs = api.favorites()
+			logging.info("looking for new favorites")
+			new_favs = api.favorites(count=190)
 			for fav in new_favs:
-				if fav.id not in favorites:
+				if fav.id not in favorites_list:
 					load_module.load_new_tweet("https://twitter.com/i/status/" + str(fav.id), from_fav=True)
 					logging.info("Loaded tweet with id:" + str(fav.id))
-			favorites = []
-			for fav in new_favs:
-				favorites.append(fav.id)
+					favorites_list.append(fav.id)
 		except Exception as e:
 			print("Error trying to get the last favs:", e)
 			logging.warning("Couldn't recover the last favs: " + str(e))

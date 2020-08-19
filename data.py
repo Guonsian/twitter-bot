@@ -15,6 +15,7 @@ class Data(object):
 	length = "LENGTH"
 	insert = "INSERT"
 	insert_last = "INSERT_LAST"
+	insert_random = "INSERT_RANDOM"
 
 	def __init__(self, text, img=None):
 		self.text = text.strip()
@@ -78,3 +79,7 @@ class Data(object):
 			if info is not None:
 				logging.info("Inserting (append) tweet to the list")
 				Data.list.append(info)
+		elif mode == Data.insert_random:
+			if info is not None:
+				logging.info("Inserting (random) tweet to the list")
+				Data.list.insert(random.randint(0, len(Data.list)), info)

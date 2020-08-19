@@ -68,7 +68,8 @@ def menu():
 			elif x == 4:
 				if Data.access_list(mode=Data.length) > 1:
 					Data.access_list(mode=Data.insert_last, info=Data.access_list(mode=Data.extract))
-					print("Sent the first tweet in queue to the last position")
+					print("Sent the first tweet in queue to the last position, next:")
+					print(Data.access_list(mode=Data.get))
 					logging.info("Sent the first tweet in queue to the last position")
 					load_module.save()
 			elif x == 5:
@@ -93,6 +94,8 @@ def menu():
 				load_module.load_new_tweet(url)
 			elif x == 8:
 				Data.access_list(mode=Data.shuffle)
+				print("Next tweet:")
+				print(Data.access_list(mode=Data.get))
 			elif x == 9:
 				logging.info("User try to reload the configuration")
 				load(True)
