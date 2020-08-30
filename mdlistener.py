@@ -62,7 +62,7 @@ class MDListener(threading.Thread):
 		global timer_dm
 		global favorites_list
 		try:
-			logging.info("looking for new favorites")
+			logging.debug("looking for new favorites")
 			new_favs = api.favorites(count=190)
 			for fav in new_favs:
 				if fav.id not in favorites_list:

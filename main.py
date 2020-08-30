@@ -23,6 +23,7 @@ def menu():
 	time.sleep(1)  # A bit of delay to print properly the other initial messages of the other threads
 	logging.info("Started menu")
 	while True:
+		print(" \t\t--- Remaining tweets: " + str(Data.access_list(mode=Data.length)) + " --- ")
 		print("------------------------------------------------------------")
 		print("1. Print next tweet\t", end="\t")
 		print("2. Enter the next tweet")
@@ -35,6 +36,7 @@ def menu():
 		print("9. Reload configuration\t", end="\t")
 		print("10. Exit")
 		print("------------------------------------------------------------")
+
 		user_input = input()
 		try:
 			x = int(user_input)

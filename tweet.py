@@ -1,10 +1,12 @@
 import os
+import re
 import time
 import auth
 import random
 import tweepy
 import logging
 import datetime
+import requests
 import threading
 import load_module
 from data import Data
@@ -66,6 +68,25 @@ class Tweet(threading.Thread):
 				logging.info("Tweeting: " + to_tweet.text)
 				print("Trying to tweet...")
 
+				append_url = None
+				if len(to_tweet.text) > 1:
+					try:
+						if to_tweet.text.find("https://t.co/") != -1 and to_tweet.text.find("https://t.co/") != 0:
+							p = re.split("https://t.co/", to_tweet.text)
+							print(p)
+							if len(p) == 2:
+								to_tweet.text = p[0]
+								append_url = requests.get("https://t.co/" + p[1]).url
+								print(append_url)
+							if len(p) == 1:
+								to_tweet.text = ""
+								append_url = requests.get("https://t.co/" + p[0]).url
+								print(append_url)
+
+
+					except Exception as e:
+						print(e)
+
 				if to_tweet.img is not None:
 					print("Media: " + str(to_tweet.img))
 					media = []
@@ -74,15 +95,18 @@ class Tweet(threading.Thread):
 							print("Uploading", image)
 							media.append(api.media_upload(image).media_id)
 							logging.info("Upload: " + image)
-						api.update_status(media_ids=media, status=to_tweet.text)
+
+						api.update_status(media_ids=media, status=to_tweet.text, attachment_url=append_url)
+
 						print("Tweet with pic/s published")
 						logging.info("Tweet with pic/s published")
-					else:
+					else:  # Not used any more but legacy option just in case
 						print("Uploading", to_tweet.img)
 						api.update_with_media(to_tweet.img, to_tweet.text)
 						logging.info("Tweet with pic published")
 				else:
-					api.update_status(to_tweet.text)
+					api.update_status(status=to_tweet.text, attachment_url=append_url)
+
 					logging.info("Tweet published")
 
 				print("Tweeted!", end=" ")

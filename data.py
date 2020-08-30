@@ -49,14 +49,17 @@ class Data(object):
 			if info is not None:
 				Data.list = info
 				logging.info("Saved the tweet list")
+
 		elif mode == Data.get:
 			logging.info("Returned the first element of the list")
 			return Data.list[0]
+
 		elif mode == Data.extract:
 			first = Data.list[0]
 			del Data.list[0]
 			logging.info("Extracted the first element of the list")
 			return first
+
 		elif mode == Data.shuffle:
 			if len(Data.list) > 1:
 				Data.list = random.sample(Data.list, len(Data.list))
@@ -65,21 +68,29 @@ class Data(object):
 			else:
 				print("There aren't enough tweets to shuffle")
 				logging.warning("There aren't enough tweets to shuffle")
+
 		elif mode == Data.get_list:
 			logging.info("Returned the whole list")
 			return Data.list
+
 		elif mode == Data.length:
 			logging.info("Returned the length of the list")
 			return len(Data.list)
+
 		elif mode == Data.insert:
 			if info is not None:
 				logging.info("Inserting tweet to the list")
 				Data.list.insert(0, info)
+
 		elif mode == Data.insert_last:
 			if info is not None:
 				logging.info("Inserting (append) tweet to the list")
 				Data.list.append(info)
+
 		elif mode == Data.insert_random:
 			if info is not None:
 				logging.info("Inserting (random) tweet to the list")
-				Data.list.insert(random.randint(0, len(Data.list)), info)
+				try:
+					Data.list.insert(random.randint(int(len(Data.list)/2), len(Data.list)), info)
+				except:
+					Data.list.append(info)
