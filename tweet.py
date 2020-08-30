@@ -73,16 +73,14 @@ class Tweet(threading.Thread):
 					try:
 						if to_tweet.text.find("https://t.co/") != -1 and to_tweet.text.find("https://t.co/") != 0:
 							p = re.split("https://t.co/", to_tweet.text)
-							print(p)
+
 							if len(p) == 2:
 								to_tweet.text = p[0]
 								append_url = requests.get("https://t.co/" + p[1]).url
-								print(append_url)
+
 							if len(p) == 1:
 								to_tweet.text = ""
 								append_url = requests.get("https://t.co/" + p[0]).url
-								print(append_url)
-
 
 					except Exception as e:
 						print(e)
