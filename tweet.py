@@ -67,6 +67,7 @@ class Tweet(threading.Thread):
 				print("------------------------------------------------------------")
 				logging.info("Tweeting: " + to_tweet.text)
 				print("Trying to tweet...")
+				p = None
 
 				append_url = None
 				if len(to_tweet.text) > 1:
@@ -103,7 +104,19 @@ class Tweet(threading.Thread):
 						api.update_with_media(to_tweet.img, to_tweet.text)
 						logging.info("Tweet with pic published")
 				else:
-					api.update_status(status=to_tweet.text, attachment_url=append_url)
+					try:
+						api.update_status(status=to_tweet.text, attachment_url=append_url)
+					except:  # This will happen if the appended url is a video, so we have to recover the shorten url
+						if p is not None:
+							if len(p) == 2:
+								append_url = "https://t.co/" + p[1]
+								to_tweet.text = to_tweet.text + append_url
+
+							if len(p) == 1:
+								append_url = "https://t.co/" + p[0]
+								to_tweet.text = to_tweet.text + append_url  # = append_url should be valid too
+
+							api.update_status(status=to_tweet.text)
 
 					logging.info("Tweet published")
 
