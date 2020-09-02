@@ -170,8 +170,16 @@ class Tweet(threading.Thread):
 					time_to_wait = 1000
 				else:
 					time_to_wait = 100
+
+				next_time = (now + datetime.timedelta(0, time_to_wait)).strftime(
+					"%H:%M:%S")  # Get the time when the next tweet will be post, and format it to make it easier to
+				# read in the console
+				Tweet.set_next_tweet_t(next_time)
+
 				Tweet.timer_tweet = threading.Timer(time_to_wait, self.tweet)
 				Tweet.timer_tweet.start()
+
+
 
 	@staticmethod
 	def new():
